@@ -1,1 +1,6 @@
 Data/owid/owid-covid-data.csv
+app.js
+Data/CovLineage/lineage_data.full.json
+.ipynb_checkpoints/
+Data/CovLineage/.ipynb_checkpoints/
+Data_preprocessing/.ipynb_checkpoints/
