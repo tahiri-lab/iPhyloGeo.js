@@ -4,3 +4,5 @@ Data/CovLineage/lineage_data.full.json
 .ipynb_checkpoints/
 Data/CovLineage/.ipynb_checkpoints/
 Data_preprocessing/.ipynb_checkpoints/
+Data/NCBI_virus/aa/
+Data/NCBI_virus/nucleotide/
