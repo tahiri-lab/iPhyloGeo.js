@@ -1,0 +1,46 @@
+.App {
+  text-align: center;
+  display: flex;
+  padding: 16px;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.page-body{
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 25px;
+  margin-left: 25px;
+}
+.box {
+  display: flex;
+  flex-direction: row-reverse;
+}
+.promo-section {
+  font-weight: bold;
+  line-height: 20px;
+  color: aquamarine;
+  background-color: darkgrey;
+}
+.centerImg {
+  width: 60%;
+  display: block;
+  margin:  auto;
+  text-align: center;
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.8; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
