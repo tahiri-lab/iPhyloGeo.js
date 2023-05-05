@@ -9,3 +9,4 @@
 
 ## Neo4j
 
+<img src="./Neo4j/model.svg" alt="isolated" width="1000"/>
