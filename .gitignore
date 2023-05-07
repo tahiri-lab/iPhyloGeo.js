@@ -1,4 +1,5 @@
 Data/owid/owid-covid-data.csv
+Data/owid/Owid_selected.csv
 Data/CovLineage/lineage_data.full.json
 .ipynb_checkpoints/
 Data/CovLineage/.ipynb_checkpoints/
@@ -6,3 +7,5 @@ Data_preprocessing/.ipynb_checkpoints/
 Data/NCBI_virus/aa/
 Data/NCBI_virus/nucleotide/
 neo4j-flask/neo4j-env/
+Neo4j/my.env
+Neo4j/DataImportCSV/
