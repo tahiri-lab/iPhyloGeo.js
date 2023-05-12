@@ -11,3 +11,4 @@ config/filter_list.yaml
 test_*/**
 Dockerfile
 /config
+my.env

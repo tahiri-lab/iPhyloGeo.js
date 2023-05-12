@@ -15,12 +15,13 @@ def bootstrapFilter(file_window, file_consensus, data_type, bootstrap_threshold=
     else:
         calculator = DistanceCalculator('blosum62')
     constructor = DistanceTreeConstructor(calculator)
-    consensus_tree = bootstrap_consensus(msa, 100, constructor, majority_consensus)
+    consensus_tree = bootstrap_consensus(
+        msa, 100, constructor, majority_consensus)
 
     # get the average of confidence value
     numbers = re.findall(r'(?=(confidence=)(\d+))', format(consensus_tree))
     confidence = [float(x[1]) for x in numbers]
-    bootstrap = statistics.mean(confidence)
+    bootstrap = statistics.mean(confidence)*100
 
     # filter
     if bootstrap >= float(bootstrap_threshold):

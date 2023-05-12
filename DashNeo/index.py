@@ -1,19 +1,15 @@
-from importlib.abc import Traversable
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
+# import dash_core_components as dcc
+# import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-import tree
-import pipeline
-import pipeline_specific_genes
-#import ttest
+
 # Connect to main app.py file
 from app import app
 from app import server
 
 # Connect to your app pages
-from apps import pipelineWithOurData, pipelineWithUploadedData, pipelineCoVGenes, uploadDataset, usingOurDataset, homePage, checkResults
-
+from apps import homePage, neoExplore
 
 
 # styling the sidebar
@@ -43,13 +39,14 @@ sidebar = html.Div(
         ),
         dbc.Nav(
             [dbc.NavLink("Home", href='/apps/homePage', active="exact"),
-            dbc.NavLink("Upload Meteorological Data", href='/apps/uploadDataset', active="exact"), 
-            dbc.NavLink("Uploaded Genetic Data (whole sequences)", href='/apps/pipelineWithUploadedData', active="exact"),
-            dbc.NavLink("Using Our Meteorological Data (SARS-CoV-2)", href='/apps/usingOurDataset', active="exact"),
-            dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, whole sequences)", href='/apps/pipelineWithOurData', active="exact"),
-            dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, specific genes)", href='/apps/pipelineCoVGenes', active="exact"),
-            dbc.NavLink("Check Results", href='/apps/checkResults', active="exact"),
-            ],
+             dbc.NavLink("Cov-Lineages Exploreration",
+                         href='/apps/neoExplore', active="exact"),
+             # dbc.NavLink("Uploaded Genetic Data (whole sequences)", href='/apps/pipelineWithUploadedData', active="exact"),
+             # dbc.NavLink("Using Our Meteorological Data (SARS-CoV-2)", href='/apps/usingOurDataset', active="exact"),
+             # dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, whole sequences)", href='/apps/pipelineWithOurData', active="exact"),
+             # dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, specific genes)", href='/apps/pipelineCoVGenes', active="exact"),
+             # dbc.NavLink("Check Results", href='/apps/checkResults', active="exact"),
+             ],
             vertical=True,
             pills=True,
         ),
@@ -66,26 +63,25 @@ app.layout = html.Div([
 ])
 
 
-
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/apps/homePage': 
+    if pathname == '/apps/homePage':
         return homePage.layout
-    if pathname == '/apps/uploadDataset': 
-        return uploadDataset.layout
-    if pathname == '/apps/pipelineWithUploadedData':
-        return pipelineWithUploadedData.layout
-    if pathname == '/apps/usingOurDataset': 
-        return usingOurDataset.layout
-    if pathname == '/apps/pipelineWithOurData':
-        return pipelineWithOurData.layout
-    if pathname == '/apps/pipelineCoVGenes':
-        return pipelineCoVGenes.layout
-    if pathname == '/apps/checkResults':
-        return checkResults.layout
+    if pathname == '/apps/neoExplore':
+        return neoExplore.layout
+    # if pathname == '/apps/pipelineWithUploadedData':
+    #     return pipelineWithUploadedData.layout
+    # if pathname == '/apps/usingOurDataset':
+    #     return usingOurDataset.layout
+    # if pathname == '/apps/pipelineWithOurData':
+    #     return pipelineWithOurData.layout
+    # if pathname == '/apps/pipelineCoVGenes':
+    #     return pipelineCoVGenes.layout
+    # if pathname == '/apps/checkResults':
+    #     return checkResults.layout
     else:
-        return homePage.layout 
+        return homePage.layout
 
 
 if __name__ == '__main__':
