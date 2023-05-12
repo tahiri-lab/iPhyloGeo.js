@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 from app import app
 
 # --------------------------
+# Define the DataFrame as a global variable
+# global global_df
+# global_df = pd.DataFrame()
 protein_list = ["ORF1ab polyprotein", "ORF1a polyprotein", "surface glycoprotein", "ORF3a protein", "envelope protein", "membrane glycoprotein",
                 "ORF6 protein", "ORF7a protein", "ORF7b protein", "ORF8 protein", "nucleocapsid phosphoprotein", "ORF10 protein"]
 lineage_list = ['A', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AS', 'AT', 'AU', 'AV', 'AW', 'AY', 'AZ', 'B', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BY', 'BZ', 'C', 'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CY', 'CZ', 'D', 'DA', 'DB', 'DC', 'DD', 'DE', 'DF', 'DG', 'DH', 'DJ', 'DK', 'DL', 'DM', 'DN', 'DP', 'DQ', 'DR', 'DS',
@@ -101,6 +104,8 @@ layout = html.Div([
                     # Output for displaying the selected values
                     html.Div(id='output-container',
                              style={'margin-top': '20px'}),
+                    # Valid message
+                    html.Div(id='valid-message'),
 
                     # ------------------------------------
                     html.Hr(),
@@ -153,8 +158,7 @@ layout = html.Div([
                                     dbc.Button("Confirm samples Selection",
                                                id="button-confir-filter", outline=True, color="success", className="me-1"),
                                     html.Br(),
-                                    # Valid message
-                                    html.Div(id='valid-message'),
+
                                     # Total rows count
                                     html.Div(id='row-count'),
                                 ]
@@ -204,6 +208,12 @@ layout = html.Div([
 
 
         # ----Row 2 end ---
+
+
+
+        # ---------------------
+        # Valid message ---- final submission
+        html.Div(id='submit-message'),
 
 
     ]),
@@ -261,14 +271,16 @@ def display_selected_values(type_value, protein_name):
     Output('valid-message', 'children'),
     [Input('button-confir-lineage', 'n_clicks'),
      State('choice-lineage', 'value'),
+     State('type-dropdown', 'value'),
+     # State('protein-name-radio', 'value'),
      ],
 )
-def update_table(n, checklist_value):
+def update_table(n, checklist_value, seqType_value):
 
     if n is None:
         return None, None
     else:
-        if checklist_value:
+        if checklist_value and seqType_value:
             # -----------------Query data in Neo4j database(input: parameters; output: pandas Data Frame)---------------------------------
             starts_with_conditions = " OR ".join(
                 [f'n.lineage STARTS WITH "{char}"' for char in checklist_value])
@@ -305,6 +317,10 @@ def update_table(n, checklist_value):
         elif not checklist_value:
             message = html.Div(
                 "Please select at least one option from the checklist.")
+            return None, message
+        elif not seqType_value:
+            message = html.Div(
+                "Please select sequence type.")
             return None, message
 
 
@@ -367,6 +383,31 @@ def check_update(all_rows_data):
 
     return row_count, mycyto
     # ---------------------------------------------
+# change the page URL
 
+
+@app.callback(
+    Output('url', 'pathname'),
+    Input('button-confir-filter', 'n_clicks'),
+    State(component_id='lineage-table',
+          component_property="derived_virtual_data"),
+    # prevent_initial_call=True
+)
+def update_page2_url(n_clicks, all_rows_data):
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        dff = pd.DataFrame(all_rows_data)
+        if dff.empty != True:
+            # global_df = dff
+            print(
+                f'---------------submitted df--------------Size {dff.shape}')
+            print(dff)
+            return '/apps/parameters'
+        else:
+            # message = html.Div(
+            #     "Please select sequence type.")
+            # return None, message
+            return print('Dataset filter did not finish')
 
 # -----------------------------------------
