@@ -13,8 +13,7 @@ from app import app
 
 # --------------------------
 # Define the DataFrame as a global variable
-# global global_df
-# global_df = pd.DataFrame()
+
 protein_list = ["ORF1ab polyprotein", "ORF1a polyprotein", "surface glycoprotein", "ORF3a protein", "envelope protein", "membrane glycoprotein",
                 "ORF6 protein", "ORF7a protein", "ORF7b protein", "ORF8 protein", "nucleocapsid phosphoprotein", "ORF10 protein"]
 lineage_list = ['A', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AS', 'AT', 'AU', 'AV', 'AW', 'AY', 'AZ', 'B', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BY', 'BZ', 'C', 'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CY', 'CZ', 'D', 'DA', 'DB', 'DC', 'DD', 'DE', 'DF', 'DG', 'DH', 'DJ', 'DK', 'DL', 'DM', 'DN', 'DP', 'DQ', 'DR', 'DS',
@@ -42,11 +41,11 @@ def queryToDataframe(query, col_name_lt):
     # Execute the Cypher query
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
                                   auth=("neo4j", password))
-
-    session = driver.session()
-    results = session.run(query)
+    with driver.session() as session:
+        # session = driver.session()
+        results = session.run(query)
     # Transform the results to a DataFrame
-    df = pd.DataFrame(results, columns=col_name_lt)
+        df = pd.DataFrame(results, columns=col_name_lt)
     return df
 
 
@@ -71,7 +70,7 @@ layout = html.Div([
                 ),
                 dbc.Collapse([
                     html.H5(
-                        "Selecte the group(s) of lineage to be studied:"),
+                        "Select the group(s) of lineage to be studied:"),
                     dcc.Checklist(id='choice-lineage',
                                   options=[{'label': x, 'value': x}
                                            for x in lineage_list],
@@ -214,6 +213,7 @@ layout = html.Div([
         # ---------------------
         # Valid message ---- final submission
         html.Div(id='submit-message'),
+        dcc.Store(id='my-variable-store'),
 
 
     ]),
@@ -387,6 +387,7 @@ def check_update(all_rows_data):
 
 
 @app.callback(
+
     Output('url', 'pathname'),
     Input('button-confir-filter', 'n_clicks'),
     State(component_id='lineage-table',
@@ -403,7 +404,10 @@ def update_page2_url(n_clicks, all_rows_data):
             print(
                 f'---------------submitted df--------------Size {dff.shape}')
             print(dff)
-            return '/apps/parameters'
+
+            input_name = "ghhhs112"
+            theURL = '/apps/parameters?' + 'input_name=' + input_name
+            return theURL
         else:
             # message = html.Div(
             #     "Please select sequence type.")
