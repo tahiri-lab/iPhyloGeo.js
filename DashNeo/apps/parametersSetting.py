@@ -3,6 +3,10 @@ from dash.dependencies import Output, Input, State
 import dash_bootstrap_components as dbc
 from app import app
 import dash
+from apps import neoExplore
+
+# ----------------------------------
+
 
 # -----------------------------------------
 # get seq length for the validation of 'sliding window size' and 'step size'
@@ -12,6 +16,8 @@ ref_genes_len = 600
 layout = html.Div([
     html.Div(html.H2("Parameters Setting"), style={"text-align": "center"}),
     html.Hr(),
+    html.Div(id='page-2-content'),
+    # html.P(f"Content of dcc.Store: {stored_data}"),
     # --------------
     dbc.Row([
 
@@ -141,6 +147,16 @@ layout = html.Div([
 ])
 
 # --------------------------------------------------------------
+
+
+@app.callback(Output('page-2-content', 'children'),
+              [Input('my-variable-store', 'modified_timestamp')])
+def display_page_2_content(timestamp):
+    # Retrieve the stored variable value from dcc.Store
+    my_variable = dcc.Store('my-variable-store').data
+    # Use the variable value to update the content of page 2
+    return html.H1(f"Page 2 Content. My Variable: {my_variable}")
+# ------------------------------------
 # view the value chosen
 
 

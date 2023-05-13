@@ -70,7 +70,7 @@ def display_page(pathname):
         return homePage.layout
     if pathname == '/apps/neoExplore':
         return neoExplore.layout
-    if pathname == '/apps/parameters':
+    if pathname.startswith('/apps/parameters'):
         return parametersSetting.layout
     # if pathname == '/apps/usingOurDataset':
     #     return usingOurDataset.layout

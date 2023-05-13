@@ -212,8 +212,10 @@ layout = html.Div([
 
         # ---------------------
         # Valid message ---- final submission
-        html.Div(id='submit-message'),
+        # html.Div(id='submit-message'),
         dcc.Store(id='my-variable-store'),
+        # dcc.Link('Go to the parameters setting page', href='parameters'),
+
 
 
     ]),
@@ -387,7 +389,7 @@ def check_update(all_rows_data):
 
 
 @app.callback(
-
+    # Output('my-variable-store', 'data'),
     Output('url', 'pathname'),
     Input('button-confir-filter', 'n_clicks'),
     State(component_id='lineage-table',
@@ -405,13 +407,10 @@ def update_page2_url(n_clicks, all_rows_data):
                 f'---------------submitted df--------------Size {dff.shape}')
             print(dff)
 
-            input_name = "ghhhs112"
-            theURL = '/apps/parameters?' + 'input_name=' + input_name
-            return theURL
-        else:
-            # message = html.Div(
-            #     "Please select sequence type.")
-            # return None, message
-            return print('Dataset filter did not finish')
+            stored_data = "ghhhs112"
 
-# -----------------------------------------
+            base_url = 'apps/parameters'
+            query_params = f'?stored_data={stored_data}'
+            url = base_url + query_params
+
+            return url
