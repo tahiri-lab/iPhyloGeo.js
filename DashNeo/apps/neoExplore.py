@@ -10,16 +10,18 @@ from dash import dash_table
 from datetime import datetime
 from dotenv import load_dotenv
 from app import app
+import secrets
+import string
+import yaml
 
 # --------------------------
-# Define the DataFrame as a global variable
 
 protein_list = ["ORF1ab polyprotein", "ORF1a polyprotein", "surface glycoprotein", "ORF3a protein", "envelope protein", "membrane glycoprotein",
                 "ORF6 protein", "ORF7a protein", "ORF7b protein", "ORF8 protein", "nucleocapsid phosphoprotein", "ORF10 protein"]
 lineage_list = ['A', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AS', 'AT', 'AU', 'AV', 'AW', 'AY', 'AZ', 'B', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BY', 'BZ', 'C', 'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CY', 'CZ', 'D', 'DA', 'DB', 'DC', 'DD', 'DE', 'DF', 'DG', 'DH', 'DJ', 'DK', 'DL', 'DM', 'DN', 'DP', 'DQ', 'DR', 'DS',
                 'DT', 'DU', 'DV', 'DW', 'DY', 'DZ', 'EA', 'EB', 'EC', 'ED', 'EE', 'EF', 'G', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'U', 'V', 'W', 'XA', 'XAA', 'XAB', 'XAC', 'XAD', 'XAE', 'XAF', 'XAG', 'XAH', 'XAJ', 'XAK', 'XAL', 'XAM', 'XAN', 'XAP', 'XAQ', 'XAR', 'XAS', 'XAT', 'XAU', 'XAV', 'XAW', 'XAY', 'XAZ', 'XB', 'XBA', 'XBB', 'XBC', 'XBD', 'XBE', 'XBF', 'XBG', 'XBH', 'XBJ', 'XBK', 'XBL', 'XBM', 'XBN', 'XBP', 'XC', 'XD', 'XE', 'XF', 'XG', 'XH', 'XJ', 'XK', 'XL', 'XM', 'XN', 'XP', 'XQ', 'XR', 'XS', 'XT', 'XU', 'XV', 'XW', 'XY', 'XZ', 'Y', 'Z']
 # ------------------------------------------------------
-# for lineage data search
+# for lineage data search: creat a empty table at the begining (place holder)
 ['lineage', 'earliest_date', 'latest_date', 'iso_code',
  'most_common_country', 'rate']
 data_lineage = {
@@ -47,6 +49,134 @@ def queryToDataframe(query, col_name_lt):
     # Transform the results to a DataFrame
         df = pd.DataFrame(results, columns=col_name_lt)
     return df
+
+
+def getNucleoIdFromLineageFilter(df):
+    accession_lt = []
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    rows_as_dicts = df.to_dict(orient='records')
+    for row in rows_as_dicts:
+        lineage = row['lineage']
+        theDate = row['earliest_date']
+        location = row['most_common_country']
+        query = """
+            MATCH (n:Nucleotide)-[:COLLECTED_IN]->(l:Location)<-[:IN_MOST_COMMON_COUNTRY]-(m:Lineage)
+            WHERE l.location = $location AND m.lineage = $lineage AND n.collection_date >= datetime($theDate)
+            RETURN n.accession
+            ORDER BY n.collection_date
+            LIMIT 1
+        """
+        params = {"location": location, "lineage": lineage, "theDate": theDate}
+        with driver.session() as session:
+            # session = driver.session()
+            results = session.run(query, params)
+            record = results.single()
+            # print(record)
+            if record:
+                accession = record["n.accession"]
+                accession_lt.append(accession)
+    return accession_lt
+
+
+def getProteinIdFromLineageFilter(df, protein_name):
+    accession_lt = []
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    rows_as_dicts = df.to_dict(orient='records')
+    for row in rows_as_dicts:
+        lineage = row['lineage']
+        theDate = row['earliest_date']
+        location = row['most_common_country']
+        query = """
+            MATCH (n:Protein)-[:COLLECTED_IN]->(l:Location)<-[:IN_MOST_COMMON_COUNTRY]-(m:Lineage)
+            WHERE l.location = $location AND m.lineage = $lineage AND n.protein = $protein_name AND n.collection_date >= datetime($theDate)
+            RETURN n.accession
+            ORDER BY n.collection_date
+            LIMIT 1
+        """
+        params = {"location": location, "lineage": lineage,
+                  "protein_name": protein_name, "theDate": theDate}
+        with driver.session() as session:
+            # session = driver.session()
+            results = session.run(query, params)
+            record = results.single()
+            # print(record)
+            if record:
+                accession = record["n.accession"]
+                accession_lt.append(accession)
+    return accession_lt
+
+
+# ---------Create Input Node and relations based on users setting------------------------------------------
+# Function to generate a unique random name
+
+
+def generate_short_id(length=8):
+    characters = string.ascii_letters + string.digits
+    short_id = ''.join(secrets.choice(characters) for _ in range(length))
+    return short_id
+
+
+def generate_unique_name():
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        random_name = generate_short_id()
+
+        result = session.run(
+            "MATCH (u:User {name: $name}) RETURN COUNT(u)", name=random_name)
+        count = result.single()[0]
+
+        while count > 0:
+            random_name = generate_short_id()
+            result = session.run(
+                "MATCH (u:User {name: $name}) RETURN COUNT(u)", name=random_name)
+            count = result.single()[0]
+
+        return random_name
+
+
+def addInputNeo(nodesLabel, inputNode_name, id_list):
+    # Execute the Cypher query
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+
+    # Create a new node for the user
+    with driver.session() as session:
+        session.run(
+            "CREATE (userInput:Input {name: $name})", name=inputNode_name)
+
+    # Perform MATCH query to retrieve nodes
+    with driver.session() as session:
+        result = session.run(
+            "MATCH (n:" + nodesLabel + ") WHERE n.accession IN $id_lt RETURN n",
+            nodesLabel=nodesLabel,
+            id_lt=id_list)
+
+        # Create relationship with properties for each matched node
+        with driver.session() as session:
+            for record in result:
+                other_node = record["n"]
+                session.run("MATCH (u:Input {name: $name}), (n:" + nodesLabel + " {accession: $id}) "
+                            "CREATE (n)-[r:IN_INPUT]->(u)",
+                            name=inputNode_name, nodesLabel=nodesLabel, id=other_node["accession"])
+    print("An Input Node is Added in Neo4j Database!")
+
+# ----------------------------------------------------
+
+
+def update_inputYaml(feature_name, value):
+    # Load the YAML file
+    with open('config/config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+
+    # Update the values
+    config['input'][feature_name] = value
+
+    # Write the updated dictionary back to the YAML file
+    with open('config/config.yaml', 'w') as file:
+        yaml.dump(config, file)
 
 
 # -----------------------------------------
@@ -392,11 +522,13 @@ def check_update(all_rows_data):
     # Output('my-variable-store', 'data'),
     Output('url', 'pathname'),
     Input('button-confir-filter', 'n_clicks'),
+    Input('type-dropdown', 'value'),
+    Input('protein-name-radio', 'value'),
     State(component_id='lineage-table',
           component_property="derived_virtual_data"),
     # prevent_initial_call=True
 )
-def update_page2_url(n_clicks, all_rows_data):
+def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
     if n_clicks is None:
         return dash.no_update
     else:
@@ -405,12 +537,19 @@ def update_page2_url(n_clicks, all_rows_data):
             # global_df = dff
             print(
                 f'---------------submitted df--------------Size {dff.shape}')
-            print(dff)
+            # print(dff)
+            inputNode_name = generate_unique_name()
+            if seq_type == 'dna':
+                seq_accession_lt = getNucleoIdFromLineageFilter(dff)
+                print(seq_accession_lt)
+                addInputNeo('Nucleotide', inputNode_name, seq_accession_lt)
+            elif seq_type == 'protein':
+                seq_accession_lt = getProteinIdFromLineageFilter(
+                    dff, protein_name)
+                print(seq_accession_lt)
+                addInputNeo('Protein', inputNode_name, seq_accession_lt)
 
-            stored_data = "ghhhs112"
+            update_inputYaml('input_name', inputNode_name)
 
-            base_url = 'apps/parameters'
-            query_params = f'?stored_data={stored_data}'
-            url = base_url + query_params
-
+            url = 'apps/parameters'
             return url

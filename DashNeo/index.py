@@ -70,16 +70,14 @@ def display_page(pathname):
         return homePage.layout
     if pathname == '/apps/neoExplore':
         return neoExplore.layout
-    if pathname.startswith('/apps/parameters'):
+    if pathname == '/apps/parameters':
         return parametersSetting.layout
+    # if pathname.startswith('/apps/parameters'):
+    #     return parametersSetting.layout
     # if pathname == '/apps/usingOurDataset':
     #     return usingOurDataset.layout
     # if pathname == '/apps/pipelineWithOurData':
     #     return pipelineWithOurData.layout
-    # if pathname == '/apps/pipelineCoVGenes':
-    #     return pipelineCoVGenes.layout
-    # if pathname == '/apps/checkResults':
-    #     return checkResults.layout
     else:
         return homePage.layout
 

@@ -3,9 +3,19 @@ from dash.dependencies import Output, Input, State
 import dash_bootstrap_components as dbc
 from app import app
 import dash
-from apps import neoExplore
+import yaml
+# from apps import neoExplore
+# from dash.exceptions import PreventUpdate
 
 # ----------------------------------
+# get input info defined
+with open('config/config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+    # input_id = config['input']['input_id']
+    input_name = config['input']['input_name']
+    # nl = '\n'
+    # message = f"Input id: {input_id} {nl}Input name: {input_name}"
+    message = f"Input name: {input_name}"
 
 
 # -----------------------------------------
@@ -16,8 +26,34 @@ ref_genes_len = 600
 layout = html.Div([
     html.Div(html.H2("Parameters Setting"), style={"text-align": "center"}),
     html.Hr(),
-    html.Div(id='page-2-content'),
+    # html.Div(id='page-2-content'),
+    # --------------------------------------------------------
+    # Get info from page neoExplore
     # html.P(f"Content of dcc.Store: {stored_data}"),
+    dbc.Row([
+            dbc.Col([
+                dcc.Textarea(
+                    id="textarea_id",
+                    value=message,
+                    style={"height": 50, 'color': 'blue'},
+                    readOnly=True,
+                ),
+                dcc.Clipboard(
+                    id="clipboard_id",
+                    target_id="textarea_id",
+                    title="Copy",
+                    style={
+                        "display": "inline-block",
+                        "fontSize": 20,
+                        "verticalAlign": "top",
+                        "marginLeft": "10px"
+                    },
+                ),
+
+            ], xs=12, sm=12, md=12, lg=10, xl=10),
+
+            ], justify='around'),
+
     # --------------
     dbc.Row([
 
@@ -149,13 +185,6 @@ layout = html.Div([
 # --------------------------------------------------------------
 
 
-@app.callback(Output('page-2-content', 'children'),
-              [Input('my-variable-store', 'modified_timestamp')])
-def display_page_2_content(timestamp):
-    # Retrieve the stored variable value from dcc.Store
-    my_variable = dcc.Store('my-variable-store').data
-    # Use the variable value to update the content of page 2
-    return html.H1(f"Page 2 Content. My Variable: {my_variable}")
 # ------------------------------------
 # view the value chosen
 
