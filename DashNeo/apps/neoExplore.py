@@ -729,8 +729,17 @@ def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
 
             config_manager.update_inputYaml('input_name', inputNode_name)
 
-            # url = 'apps/parameters'
-            return "The sample information to be analyzed has been successfully saved!"
+            output_conrainer = dbc.CardBody([
+
+                dcc.Markdown(
+                    "The sample information to be analyzed has been successfully saved!", className="card-text"),
+
+                dbc.CardLink("Next Step", href="parameters"),
+
+            ]
+            )
+
+            return output_conrainer
 
 
 @app.callback(
@@ -773,25 +782,35 @@ def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
 
             config_manager.update_inputYaml('input_name', inputNode_name)
 
-            return "The sample information to be analyzed has been successfully saved!"
+            output_conrainer = dbc.CardBody([
+
+                dcc.Markdown(
+                    "The sample information to be analyzed has been successfully saved!", className="card-text"),
+
+                dbc.CardLink("Next Step", href="parameters"),
+
+            ]
+            )
+
+            return output_conrainer
 
 # ----------------------------------------------------------------
 # change the page URL
 
 
-@app.callback(
-    Output('url', 'pathname'),
-    State('submit_message', 'children'),
-    State('submit_message2', 'children'),
-    Input('button-confir-filter', 'n_clicks'),
-    Input('button-confir-samples', 'n_clicks'),
-)
-def update_url(m1, m2, n1, n2):
-    if n1 is None and n2 is None:
-        return dash.no_update
-    elif m1 is not None or m1 != '':
-        print(m1)
-        return 'apps/parameters'
-    elif m2 is not None or m2 != '':
-        print(m2)
-        return 'apps/parameters'
+# @app.callback(
+#     Output('url', 'pathname'),
+#     State('submit_message', 'children'),
+#     State('submit_message2', 'children'),
+#     Input('button-confir-filter', 'n_clicks'),
+#     Input('button-confir-samples', 'n_clicks'),
+# )
+# def update_url(m1, m2, n1, n2):
+#     if n1 is None and n2 is None:
+#         return dash.no_update
+#     elif m1 is not None or m1 != '':
+#         print(m1)
+#         return 'apps/parameters'
+#     elif m2 is not None or m2 != '':
+#         print(m2)
+#         return 'apps/parameters'
