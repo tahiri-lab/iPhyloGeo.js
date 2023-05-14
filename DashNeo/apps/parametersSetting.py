@@ -9,8 +9,10 @@ from apps import config_manager
 
 # -----------------------------------------
 # get seq length for the validation of 'sliding window size' and 'step size'
+# By default, the length of 'ORF10'(117bp) was used as the ref_genes_len, since this is the minimun sequence length in our database
+# Once user click the 'Get Input ID' button
 # (1) Based on the id (or name) of :Input node, get the list of sequence, (2) and the minimum lengh of seq
-ref_genes_len = 600
+ref_genes_len = 117
 # --------------------------------------
 layout = html.Div([
     html.Div(html.H2("Parameters Setting"), style={"text-align": "center"}),

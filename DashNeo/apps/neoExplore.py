@@ -9,7 +9,7 @@ from datetime import datetime
 
 from app import app
 
-import yaml
+from apps import config_manager
 from apps import neoCypher_manager
 
 # --------------------------
@@ -31,19 +31,6 @@ data_lineage = {
     'rate': [],
 }
 df_lineage = pd.DataFrame(data_lineage)
-
-
-def update_inputYaml(feature_name, value):
-    # Load the YAML file
-    with open('config/config.yaml', 'r') as file:
-        config = yaml.safe_load(file)
-
-    # Update the values
-    config['input'][feature_name] = value
-
-    # Write the updated dictionary back to the YAML file
-    with open('config/config.yaml', 'w') as file:
-        yaml.dump(config, file)
 
 
 # -----------------------------------------
@@ -709,7 +696,7 @@ def check_update(all_rows_data):
           component_property="derived_virtual_data"),
     # prevent_initial_call=True
 )
-def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
+def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
     # print(n_clicks)
     if n_clicks is None:
         return dash.no_update
@@ -722,19 +709,25 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
             # print(dff)
             inputNode_name = neoCypher_manager.generate_unique_name()
             if seq_type == 'dna':
+                config_manager.update_paramsYaml('data_type', seq_type)
                 seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
                     dff)
                 print(seq_accession_lt)
+                config_manager.update_seqinfoYaml(
+                    'accession_lt', seq_accession_lt)
                 neoCypher_manager.addInputNeo(
                     'Nucleotide', inputNode_name, seq_accession_lt)
             elif seq_type == 'protein':
+                config_manager.update_paramsYaml('data_type', 'aa')
                 seq_accession_lt = neoCypher_manager.getProteinIdFromSamplesFilter(
                     dff, protein_name)
                 print(seq_accession_lt)
+                config_manager.update_seqinfoYaml(
+                    'accession_lt', seq_accession_lt)
                 neoCypher_manager.addInputNeo(
                     'Protein', inputNode_name, seq_accession_lt)
 
-            update_inputYaml('input_name', inputNode_name)
+            config_manager.update_inputYaml('input_name', inputNode_name)
 
             # url = 'apps/parameters'
             return "The sample information to be analyzed has been successfully saved!"
@@ -749,7 +742,7 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
           component_property="derived_virtual_data"),
     # prevent_initial_call=True
 )
-def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
+def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
     if n_clicks is None:
         return dash.no_update
     else:
@@ -760,19 +753,25 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
             # print(dff)
             inputNode_name = neoCypher_manager.generate_unique_name()
             if seq_type == 'dna':
+                config_manager.update_paramsYaml('data_type', seq_type)
                 seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
                     dff)
                 print(seq_accession_lt)
+                config_manager.update_seqinfoYaml(
+                    'accession_lt', seq_accession_lt)
                 neoCypher_manager.addInputNeo(
                     'Nucleotide', inputNode_name, seq_accession_lt)
             elif seq_type == 'protein':
+                config_manager.update_paramsYaml('data_type', 'aa')
                 seq_accession_lt = neoCypher_manager.getProteinIdFromSamplesFilter(
                     dff, protein_name)
                 print(seq_accession_lt)
+                config_manager.update_seqinfoYaml(
+                    'accession_lt', seq_accession_lt)
                 neoCypher_manager.addInputNeo(
                     'Protein', inputNode_name, seq_accession_lt)
 
-            update_inputYaml('input_name', inputNode_name)
+            config_manager.update_inputYaml('input_name', inputNode_name)
 
             return "The sample information to be analyzed has been successfully saved!"
 
@@ -788,11 +787,11 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
     Input('button-confir-samples', 'n_clicks'),
 )
 def update_url(m1, m2, n1, n2):
-    # print(m1)
-    # print(m2)
     if n1 is None and n2 is None:
         return dash.no_update
     elif m1 is not None or m1 != '':
+        print(m1)
         return 'apps/parameters'
     elif m2 is not None or m2 != '':
+        print(m2)
         return 'apps/parameters'
