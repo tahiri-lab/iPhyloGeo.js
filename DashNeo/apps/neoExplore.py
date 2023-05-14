@@ -166,6 +166,20 @@ layout = html.Div([
                     ], justify='around'),
                     # ----Row 1-2 end ---
                     html.Hr(),
+                    dbc.Row([
+                        dbc.Col([
+
+                            dcc.Loading(
+                                id='loading',
+                                type='circle',
+                                children=[
+                                    html.Div(id='submit_message'),
+                                    # html.Div(id='url-output'),
+                                ]),
+
+                        ], xs=12, sm=12, md=12, lg=12, xl=12),
+
+                    ], justify='around'),
 
                     # ----Row 1-3: Cyto (begin) -------
                     dbc.Row([
@@ -299,10 +313,11 @@ layout = html.Div([
                                     ),
                                     html.Br(),
                                     dbc.Button("Confirm samples Selection",
-                                               id="button-confir-filter2", outline=True, color="success", className="me-1"),
+                                               id="button-confir-samples", outline=True, color="success", className="me-1"),
                                     html.Br(),
 
                                     # Total rows count
+
                                     html.Div(id='row-count2'),
                                 ]
                             ),
@@ -313,6 +328,22 @@ layout = html.Div([
                     ], justify='around'),
                     # ----Row 2-2 end ---
                     html.Hr(),
+                    dbc.Row([
+                        dbc.Col([
+
+                            dcc.Loading(
+                                id='loading',
+                                type='circle',
+                                children=[
+                                    html.Div(id='submit_message2'),
+                                    # html.Div(id='url-output2')
+                                ]),
+
+                        ], xs=12, sm=12, md=12, lg=12, xl=12),
+
+                    ], justify='around'),
+
+
 
                     # ----Row 2-3: Cyto (begin) -------
                     dbc.Row([
@@ -340,7 +371,6 @@ layout = html.Div([
 
 
         # ----Row 2 end ---
-
 
 
 
@@ -560,7 +590,6 @@ def update_table(n, checklist_value, seqType_value):
     Output('row-count2', 'children'),
     Output('cyto-container2', 'children'),
     [
-        # Input('button-confir-filter', 'n_clicks'),
         Input(component_id='location-table',
               component_property="derived_virtual_data")]
 )
@@ -617,7 +646,6 @@ def check_update(all_rows_data):
     Output('row-count', 'children'),
     Output('cyto-container', 'children'),
     [
-        # Input('button-confir-filter', 'n_clicks'),
         Input(component_id='lineage-table',
               component_property="derived_virtual_data")]
 )
@@ -669,11 +697,51 @@ def check_update(all_rows_data):
 
     return row_count, mycyto
     # ---------------------------------------------
-# change the page URL
+# save sample information to the database
 
 
 @app.callback(
-    Output('url', 'pathname'),
+    Output('submit_message2', 'children'),
+    Input('button-confir-samples', 'n_clicks'),
+    Input('type-dropdown2', 'value'),
+    Input('protein-name-radio2', 'value'),
+    State(component_id='location-table',
+          component_property="derived_virtual_data"),
+    # prevent_initial_call=True
+)
+def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
+    # print(n_clicks)
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        dff = pd.DataFrame(all_rows_data)
+        print('dff_size', dff.shape)
+        if dff.empty != True:
+            print(
+                f'---------------submitted df-----location_filter---------Size {dff.shape}')
+            # print(dff)
+            inputNode_name = neoCypher_manager.generate_unique_name()
+            if seq_type == 'dna':
+                seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
+                    dff)
+                print(seq_accession_lt)
+                neoCypher_manager.addInputNeo(
+                    'Nucleotide', inputNode_name, seq_accession_lt)
+            elif seq_type == 'protein':
+                seq_accession_lt = neoCypher_manager.getProteinIdFromSamplesFilter(
+                    dff, protein_name)
+                print(seq_accession_lt)
+                neoCypher_manager.addInputNeo(
+                    'Protein', inputNode_name, seq_accession_lt)
+
+            update_inputYaml('input_name', inputNode_name)
+
+            # url = 'apps/parameters'
+            return "The sample information to be analyzed has been successfully saved!"
+
+
+@app.callback(
+    Output('submit_message', 'children'),
     Input('button-confir-filter', 'n_clicks'),
     Input('type-dropdown', 'value'),
     Input('protein-name-radio', 'value'),
@@ -687,19 +755,18 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
     else:
         dff = pd.DataFrame(all_rows_data)
         if dff.empty != True:
-            # global_df = dff
             print(
-                f'---------------submitted df--------------Size {dff.shape}')
+                f'---------------submitted df-------lineage_filter-------Size {dff.shape}')
             # print(dff)
             inputNode_name = neoCypher_manager.generate_unique_name()
             if seq_type == 'dna':
-                seq_accession_lt = neoCypher_manager.getNucleoIdFromLineageFilter(
+                seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
                     dff)
                 print(seq_accession_lt)
                 neoCypher_manager.addInputNeo(
                     'Nucleotide', inputNode_name, seq_accession_lt)
             elif seq_type == 'protein':
-                seq_accession_lt = neoCypher_manager.getProteinIdFromLineageFilter(
+                seq_accession_lt = neoCypher_manager.getProteinIdFromSamplesFilter(
                     dff, protein_name)
                 print(seq_accession_lt)
                 neoCypher_manager.addInputNeo(
@@ -707,5 +774,25 @@ def update_page2_url(n_clicks, seq_type, protein_name, all_rows_data):
 
             update_inputYaml('input_name', inputNode_name)
 
-            url = 'apps/parameters'
-            return url
+            return "The sample information to be analyzed has been successfully saved!"
+
+# ----------------------------------------------------------------
+# change the page URL
+
+
+@app.callback(
+    Output('url', 'pathname'),
+    State('submit_message', 'children'),
+    State('submit_message2', 'children'),
+    Input('button-confir-filter', 'n_clicks'),
+    Input('button-confir-samples', 'n_clicks'),
+)
+def update_url(m1, m2, n1, n2):
+    # print(m1)
+    # print(m2)
+    if n1 is None and n2 is None:
+        return dash.no_update
+    elif m1 is not None or m1 != '':
+        return 'apps/parameters'
+    elif m2 is not None or m2 != '':
+        return 'apps/parameters'

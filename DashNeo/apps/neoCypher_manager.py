@@ -44,7 +44,7 @@ def queryToDataframe(query, col_name_lt):
     return df
 
 
-def getNucleoIdFromLineageFilter(df):
+def getNucleoIdFromSamplesFilter(df):
     accession_lt = []
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
                                   auth=("neo4j", password))
@@ -72,7 +72,7 @@ def getNucleoIdFromLineageFilter(df):
     return accession_lt
 
 
-def getProteinIdFromLineageFilter(df, protein_name):
+def getProteinIdFromSamplesFilter(df, protein_name):
     accession_lt = []
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
                                   auth=("neo4j", password))

@@ -187,8 +187,8 @@ def retrieve_config_values(n):
     else:
         config = config_manager.read_config()
         input_name = config['input']['input_name']
-        message = f"Input Id: {input_name}"
-        return message
+        # message = f"Input Id: {input_name}"
+        return input_name
 
     # ----------------------------------
 
