@@ -433,6 +433,7 @@ def display_selected_values(type_value, protein_name):
 
 
 # --------------------------------------------
+# filtering table update
 @app.callback(
     Output('location-table', 'data'),
     Output('valid-message2', 'children'),
@@ -486,7 +487,8 @@ def update_table(n, start_date_string, end_date_string, checklist_value, seqType
 
             return table_data, None
         elif not start_date_string or not end_date_string:
-            return html.Div("Please select a date range.")
+            message = html.Div("Please select a date range.")
+            return None, message
         elif not checklist_value:
             message = html.Div(
                 "Please select at least one option from the checklist.")
@@ -554,6 +556,61 @@ def update_table(n, checklist_value, seqType_value):
 
 
 # ---------- Visual Cyto----------------------
+@app.callback(
+    Output('row-count2', 'children'),
+    Output('cyto-container2', 'children'),
+    [
+        # Input('button-confir-filter', 'n_clicks'),
+        Input(component_id='location-table',
+              component_property="derived_virtual_data")]
+)
+def check_update(all_rows_data):
+    dff = pd.DataFrame(all_rows_data)
+
+    print("shape", dff.shape)
+
+    row_count = html.H5("Selected Data Size: {}".format(len(dff))),
+    mycyto = html.Div()
+    if dff.empty != True:
+        nodes_list = dff.lineage.unique().tolist(
+        ) + dff.most_common_country.unique().tolist()
+        elements = [{'data': {'id': id, 'label': id}} for id in nodes_list]
+        dff = dff[['lineage', 'most_common_country', 'rate']]
+        dff.rename(columns={"most_common_country": "source",
+                            "lineage": "target", "rate": "weight"}, inplace=True)
+        data_list = dff.to_dict('records')
+        relations = [{'data': item} for item in data_list]
+        elements.extend(relations)
+
+        mycyto = cyto.Cytoscape(
+            id='cytoscape-styling-2',
+            # circle "random","preset","circle","concentric","grid","breadthfirst","cose","close-bilkent","cola","euler","spread","dagre","klay"
+            layout={'name': 'circle'},
+            style={'width': '100%', 'height': '400px'},
+            elements=elements,
+            stylesheet=[
+                {
+                    'selector': 'node',
+                    'style': {
+                        'content': 'data(label)'
+                    }
+                },
+                {
+                    'selector': 'edge',
+                    'style': {
+                        'label': 'data(weight)'
+                    }
+                },
+                {
+                    'selector': '[weight > 30]',
+                    'style': {
+                        'line-color': 'blue',
+                    }
+                }
+            ]
+        )
+
+    return row_count, mycyto
 
 
 @app.callback(
