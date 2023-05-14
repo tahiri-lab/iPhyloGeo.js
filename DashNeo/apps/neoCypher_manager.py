@@ -156,3 +156,17 @@ def addInputNeo(nodesLabel, inputNode_name, id_list):
     print("An Input Node is Added in Neo4j Database!")
 
 # ----------------------------------------------------
+
+
+def get_seq_length(nodesLabel, seq_list):
+    # Execute the Cypher query
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        result = session.run(
+            "MATCH (n:" + nodesLabel +
+            ") WHERE n.accession IN $seq_list RETURN min(n.length)",
+            seq_list=seq_list
+        )
+        length = result.single()[0]
+    return length

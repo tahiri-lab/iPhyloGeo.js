@@ -4,15 +4,13 @@ import dash_bootstrap_components as dbc
 from app import app
 import dash
 from apps import config_manager
+from apps import neoCypher_manager
 # from dash.exceptions import PreventUpdate
 
 
 # -----------------------------------------
-# get seq length for the validation of 'sliding window size' and 'step size'
-# By default, the length of 'ORF10'(117bp) was used as the ref_genes_len, since this is the minimun sequence length in our database
-# Once user click the 'Get Input ID' button
-# (1) Based on the id (or name) of :Input node, get the list of sequence, (2) and the minimum lengh of seq
-ref_genes_len = 117
+
+
 # --------------------------------------
 layout = html.Div([
     html.Div(html.H2("Parameters Setting"), style={"text-align": "center"}),
@@ -26,23 +24,32 @@ layout = html.Div([
                 dbc.Button("Get Input Id",
                            id="get_input_name", outline=True, color="success", className="me-1"),
                 html.Br(),
-                dcc.Textarea(
-                    id="textarea_id",
-                    value='',
-                    style={"height": 50, 'color': 'blue'},
-                    readOnly=True,
-                ),
-                dcc.Clipboard(
-                    id="clipboard_id",
-                    target_id="textarea_id",
-                    title="Copy",
-                    style={
-                        "display": "inline-block",
-                        "fontSize": 20,
-                        "verticalAlign": "top",
-                        "marginLeft": "10px"
-                    },
-                ),
+                dcc.Loading(
+                    id='loading',
+                    type='circle',
+                    children=[
+                        dcc.Textarea(
+                            id="textarea_id",
+                            value='',
+                            style={"height": 50, 'color': 'blue'},
+                            readOnly=True,
+                        ),
+                        dcc.Clipboard(
+                            id="clipboard_id",
+                            target_id="textarea_id",
+                            title="Copy",
+                            style={
+                                "display": "inline-block",
+                                "fontSize": 20,
+                                "verticalAlign": "top",
+                                "marginLeft": "10px"
+                            },
+                        ),
+                        dcc.Store(id='seq-length-store',
+                                  storage_type='session'),
+                    ]),
+
+
 
             ], xs=12, sm=12, md=12, lg=10, xl=10),
 
@@ -177,20 +184,29 @@ layout = html.Div([
 ])
 
 # --------------------------------------------------------------
+# get seq length and input node id
 
 
 @app.callback(
     Output('textarea_id', 'value'),
+    Output('seq-length-store', 'data'),
     Input('get_input_name', 'n_clicks')
 )
 def retrieve_config_values(n):
     if n is None:
-        return None
+        return None, None
     else:
         config = config_manager.read_config()
+        if config['params']['data_type'] == 'dna':
+            nodesLabel = 'Nucleotide'
+        else:
+            nodesLabel = 'Protein'
+        seq_list = config['seqinfo']['accession_lt']
+        ref_genes_len = neoCypher_manager.get_seq_length(nodesLabel, seq_list)
+        print(ref_genes_len)
         input_name = config['input']['input_name']
         # message = f"Input Id: {input_name}"
-        return input_name
+        return input_name, ref_genes_len
 
     # ----------------------------------
 
@@ -212,37 +228,42 @@ def update_output(value):
     [dash.dependencies.Input('RF-distanceThreshold-slider2', 'value')])
 def update_output(value):
     return 'You have selected {:0.1f}%'.format(value)
+# get seq length for the validation of 'sliding window size' and 'step size'
+# By default, the length of 'ORF10'(117bp) was used as the ref_genes_len, since this is the minimun sequence length in our database
+# Once user click the 'Get Input ID' button
+# (1) sequence list in the config.yaml file calculate the minimum lengh of seq
 
-# @app.callback(
-#     dash.dependencies.Output('input_windowSize-container2', 'children'),
-#     [dash.dependencies.Input('input_stepSize2', 'value'),
-#     dash.dependencies.Input('genes_selected2', 'value')
-#     ])
-# def update_output(stepSize,genes):
-#     len_list = []
-#     for gen in genes:
-#         len_list.append(ref_genes_len.get(gen))
-#     min_len = min(len_list)
-#     if stepSize == None:
-#         value_max = min_len - 1
-#     else:
-#         value_max = min_len - 1 - stepSize
-#     return 'The input value must an integer from o to {}'.format(value_max)
 
-# @app.callback(
-#     dash.dependencies.Output('input_stepSize-container2', 'children'),
-#     [dash.dependencies.Input('input_windowSize2', 'value'),
-#     dash.dependencies.Input('genes_selected2', 'value')])
-# def update_output(windowSize,genes):
-#     len_list = []
-#     for gen in genes:
-#         len_list.append(ref_genes_len.get(gen))
-#     min_len = min(len_list)
-#     if windowSize == None:
-#         value_max = min_len - 1
-#     else:
-#         value_max = min_len - 1 - windowSize
-#     return 'The input value must be an integer from 0 to {}'.format(value_max)
+@app.callback(
+    dash.dependencies.Output('input_windowSize-container2', 'children'),
+    [dash.dependencies.Input('input_stepSize2', 'value'),
+     Input('seq-length-store', 'data'),
+     ])
+def update_output(stepSize, ref_genes_len):
+    if ref_genes_len != None:
+        if stepSize == None:
+            value_max = int(ref_genes_len) - 1
+        else:
+            value_max = int(ref_genes_len) - 1 - stepSize
+        return 'The input value must an integer from o to {}'.format(value_max)
+    else:
+        return 'The input value must an integer from o to 117'
+
+
+@app.callback(
+    dash.dependencies.Output('input_stepSize-container2', 'children'),
+    [dash.dependencies.Input('input_windowSize2', 'value'),
+     Input('seq-length-store', 'data'),
+     ])
+def update_output(windowSize, ref_genes_len):
+    if ref_genes_len != None:
+        if windowSize == None:
+            value_max = int(ref_genes_len) - 1
+        else:
+            value_max = int(ref_genes_len) - 1 - windowSize
+        return 'The input value must be an integer from 0 to {}'.format(value_max)
+    else:
+        return 'The input value must an integer from o to 117'
 
 
 # -------------------------------------------------
