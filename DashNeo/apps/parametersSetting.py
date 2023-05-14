@@ -4,18 +4,8 @@ import dash_bootstrap_components as dbc
 from app import app
 import dash
 import yaml
-# from apps import neoExplore
+from apps import config_manager
 # from dash.exceptions import PreventUpdate
-
-# ----------------------------------
-# get input info defined
-with open('config/config.yaml', 'r') as file:
-    config = yaml.safe_load(file)
-    # input_id = config['input']['input_id']
-    input_name = config['input']['input_name']
-    # nl = '\n'
-    # message = f"Input id: {input_id} {nl}Input name: {input_name}"
-    message = f"Input name: {input_name}"
 
 
 # -----------------------------------------
@@ -32,9 +22,12 @@ layout = html.Div([
     # html.P(f"Content of dcc.Store: {stored_data}"),
     dbc.Row([
             dbc.Col([
+                dbc.Button("Get Input Id",
+                           id="get_input_name", outline=True, color="success", className="me-1"),
+                html.Br(),
                 dcc.Textarea(
                     id="textarea_id",
-                    value=message,
+                    value='',
                     style={"height": 50, 'color': 'blue'},
                     readOnly=True,
                 ),
@@ -184,6 +177,21 @@ layout = html.Div([
 
 # --------------------------------------------------------------
 
+
+@app.callback(
+    Output('textarea_id', 'value'),
+    Input('get_input_name', 'n_clicks')
+)
+def retrieve_config_values(n):
+    if n is None:
+        return None
+    else:
+        config = config_manager.read_config()
+        input_name = config['input']['input_name']
+        message = f"Input Id: {input_name}"
+        return message
+
+    # ----------------------------------
 
 # ------------------------------------
 # view the value chosen
