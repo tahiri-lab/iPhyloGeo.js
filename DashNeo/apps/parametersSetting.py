@@ -3,7 +3,6 @@ from dash.dependencies import Output, Input, State
 import dash_bootstrap_components as dbc
 from app import app
 import dash
-import yaml
 from apps import config_manager
 # from dash.exceptions import PreventUpdate
 
