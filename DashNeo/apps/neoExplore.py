@@ -14,12 +14,41 @@ import secrets
 import string
 import yaml
 
+# ------------------------
+# For Neo4j Connection
+load_dotenv("my.env")
+password = os.getenv("NEO_PASS")
+# print(password)
 # --------------------------
+# get location list
 
-protein_list = ["ORF1ab polyprotein", "ORF1a polyprotein", "surface glycoprotein", "ORF3a protein", "envelope protein", "membrane glycoprotein",
-                "ORF6 protein", "ORF7a protein", "ORF7b protein", "ORF8 protein", "nucleocapsid phosphoprotein", "ORF10 protein"]
-lineage_list = ['A', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AP', 'AQ', 'AS', 'AT', 'AU', 'AV', 'AW', 'AY', 'AZ', 'B', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BY', 'BZ', 'C', 'CA', 'CB', 'CC', 'CD', 'CE', 'CF', 'CG', 'CH', 'CJ', 'CK', 'CL', 'CM', 'CN', 'CP', 'CQ', 'CR', 'CS', 'CT', 'CU', 'CV', 'CW', 'CY', 'CZ', 'D', 'DA', 'DB', 'DC', 'DD', 'DE', 'DF', 'DG', 'DH', 'DJ', 'DK', 'DL', 'DM', 'DN', 'DP', 'DQ', 'DR', 'DS',
-                'DT', 'DU', 'DV', 'DW', 'DY', 'DZ', 'EA', 'EB', 'EC', 'ED', 'EE', 'EF', 'G', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'U', 'V', 'W', 'XA', 'XAA', 'XAB', 'XAC', 'XAD', 'XAE', 'XAF', 'XAG', 'XAH', 'XAJ', 'XAK', 'XAL', 'XAM', 'XAN', 'XAP', 'XAQ', 'XAR', 'XAS', 'XAT', 'XAU', 'XAV', 'XAW', 'XAY', 'XAZ', 'XB', 'XBA', 'XBB', 'XBC', 'XBD', 'XBE', 'XBF', 'XBG', 'XBH', 'XBJ', 'XBK', 'XBL', 'XBM', 'XBN', 'XBP', 'XC', 'XD', 'XE', 'XF', 'XG', 'XH', 'XJ', 'XK', 'XL', 'XM', 'XN', 'XP', 'XQ', 'XR', 'XS', 'XT', 'XU', 'XV', 'XW', 'XY', 'XZ', 'Y', 'Z']
+
+def get_databaseProperties_list():
+    q_lineage = "MATCH (n:Lineage) RETURN DISTINCT n.lineage"
+    q_protein = "MATCH (n:Protein) RETURN DISTINCT n.protein"
+    q_location = "MATCH (n:Location) RETURN DISTINCT n.location"
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results_location = session.run(q_location)
+        location_list = [record['n.location'] for record in results_location]
+        results_protein = session.run(q_protein)
+        protein_list = [record['n.protein'] for record in results_protein]
+        results_lineage = session.run(q_lineage)
+        record_lineage_lt = [record['n.lineage'].split(
+            '.')[0] for record in results_lineage]
+        lineage_list = list(set(record_lineage_lt))
+
+    location_lt = [item for item in location_list if item is not None]
+    protein_lt = [item for item in protein_list if item is not None]
+    lineage_lt = [item for item in lineage_list if item is not None]
+    return location_lt, protein_lt, lineage_lt
+
+
+location_list, protein_list, lineage_list = get_databaseProperties_list()
+print(location_list)
+print(protein_list)
+print(lineage_list)
 # ------------------------------------------------------
 # for lineage data search: creat a empty table at the begining (place holder)
 ['lineage', 'earliest_date', 'latest_date', 'iso_code',
@@ -34,9 +63,6 @@ data_lineage = {
 }
 df_lineage = pd.DataFrame(data_lineage)
 # -----------Neo4j query function------------------------------
-load_dotenv("my.env")
-password = os.getenv("NEO_PASS")
-# print(password)
 
 
 def queryToDataframe(query, col_name_lt):
@@ -328,9 +354,73 @@ layout = html.Div([
         # ----Row 2 begin -------
         dbc.Row([
             dbc.Col([
+                dbc.CardHeader(
+                    dbc.Button(
+                        "Exploration: Start with the location",
+                        color="primary",
+                        id="button-ExploreLocation",
+                    )
+                ),
+                dbc.Collapse([
+                    html.H5("Date Range Selection"),
+                    dcc.DatePickerRange(
+                        id='date-range-lineage',
+                        start_date_placeholder_text="Start Date",
+                        end_date_placeholder_text="End Date",
+                        display_format='YYYY-MM-DD',
+                        min_date_allowed=datetime(2020, 1, 1),
+                        max_date_allowed=datetime(2022, 12, 31),
+                        initial_visible_month=datetime(2020, 1, 1),
+                    ),
+                    html.H5(
+                        "Select the locations to be studied:"),
+                    dcc.Checklist(id='choice-location',
+                                  options=[{'label': x, 'value': x}
+                                           for x in lineage_list],
+                                  labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
+                    # First dropdown for selecting DNA or Protein
+                    html.H5(
+                        "Selecte the type sequences data to be studied:"),
+                    dcc.Dropdown(
+                        id='type-dropdown2',
+                        options=[
+                            {'label': 'Nucleotide', 'value': 'dna'},
+                            {'label': 'Protein', 'value': 'protein'}
+                        ],
+                        value=None
+                    ),
+                    # Placeholder for the protein name radio items (initially hidden)
+                    html.Div(id='protein-name-container2', style={'display': 'none'}, children=[
+                        dcc.RadioItems(
+                            id='protein-name-radio2',
+                            options=[
+                                {'label': i, 'value': i}
+                                for i in protein_list
+                            ],
+                            value=None
+                        )
+                    ]),
+
+                    dbc.Button("Confirm",
+                               id="button-confir-lineage2", outline=True, color="success", className="me-1"),
+                    # Output for displaying the selected values
+                    html.Div(id='output-container2',
+                             style={'margin-top': '20px'}),
+                    # Valid message
+                    html.Div(id='valid-message2'),
+
+                    # ------------------------------------
+                    html.Hr(),
+
+                    # ----Row 2-2: Dash Table (begin) -------
+                ],
+                    id='exploreLocation', is_open=False,   # the Id of Collapse
+                ),
 
 
 
+
+                # ----------we are in dbc.Row (2)------------------------------------------------------------------
             ], xs=12, sm=12, md=12, lg=12, xl=12),
 
         ], justify='around'),
@@ -340,11 +430,10 @@ layout = html.Div([
 
 
 
+
         # ---------------------
-        # Valid message ---- final submission
-        # html.Div(id='submit-message'),
-        dcc.Store(id='my-variable-store'),
-        # dcc.Link('Go to the parameters setting page', href='parameters'),
+
+
 
 
 
@@ -352,6 +441,17 @@ layout = html.Div([
 ])
 
 # ----------------------------
+
+
+@app.callback(
+    Output("exploreLocation", "is_open"),
+    [Input("button-ExploreLocation", "n_clicks")],
+    [State("exploreLocation", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 @app.callback(
@@ -519,7 +619,6 @@ def check_update(all_rows_data):
 
 
 @app.callback(
-    # Output('my-variable-store', 'data'),
     Output('url', 'pathname'),
     Input('button-confir-filter', 'n_clicks'),
     Input('type-dropdown', 'value'),
