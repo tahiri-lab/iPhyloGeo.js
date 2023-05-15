@@ -170,3 +170,62 @@ def get_seq_length(nodesLabel, seq_list):
         )
         length = result.single()[0]
     return length
+
+# ---------------------------
+# have accession list get location, collection_date, put all the results in a dataframe
+
+
+def get_dfDayLocation(nodesLabel, seq_list):
+    col_name_lt = ['id', 'location', 'collection_date']
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results = session.run(
+            "MATCH (n:" + nodesLabel +
+            ") WHERE n.accession IN $seq_list RETURN n.accession as id, n.country as location, n.collection_date as collection_date",
+            seq_list=seq_list
+        )
+        # Transform the results to a DataFrame
+        df = pd.DataFrame(results, columns=col_name_lt)
+    return df
+
+
+def get_geoRef(location, date_begin, date_end):
+    envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+                      'wind_speed_10meters_range', 'wind_speed_50meters_range']
+    query = """
+        MATCH (n:LocationDAY) 
+WHERE n.location = $location
+    AND n.date>=datetime($date_begin) AND n.date<=datetime($date_end)
+RETURN n.temperature as temperature, n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
+    """
+
+    params = {"location": location, "date_begin": date_begin,
+              "date_end": date_end}
+
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results = session.run(query, params)
+        df = pd.DataFrame(results, columns=envFactor_list)
+    return df
+
+
+def get_geoOneDay(location, date):
+    envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+                      'wind_speed_10meters_range', 'wind_speed_50meters_range']
+    query = """
+        MATCH (n:LocationDAY) 
+WHERE n.location = $location
+    AND n.date=datetime($date) 
+RETURN n.temperature as temperature, n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
+    """
+
+    params = {"location": location, "date": date}
+
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results = session.run(query, params)
+        df = pd.DataFrame(results, columns=envFactor_list)
+    return df

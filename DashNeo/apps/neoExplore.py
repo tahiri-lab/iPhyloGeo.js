@@ -61,7 +61,7 @@ layout = html.Div([
                                   labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
                     # First dropdown for selecting DNA or Protein
                     html.H5(
-                        "Selecte the type sequences data to be studied:"),
+                        "Select the type sequences data to be studied:"),
                     dcc.Dropdown(
                         id='type-dropdown',
                         options=[
@@ -126,7 +126,7 @@ layout = html.Div([
                                         page_current=0,             # page number that user is on
                                         page_size=20,                # number of rows visible per page
                                         style_cell={                # ensure adequate header width when text is shorter than cell's text
-                                            'minWidth': 95, 'maxWidth': 95, 'width': 95
+                                            'minWidth': 95, 'maxWidth': 300, 'width': 95
                                         },
                                         style_data={                # overflow cells' content into multiple lines
                                             'whiteSpace': 'normal',
@@ -222,7 +222,7 @@ layout = html.Div([
                                   labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
                     # First dropdown for selecting DNA or Protein
                     html.H5(
-                        "Selecte the type sequences data to be studied:"),
+                        "Select the type sequences data to be studied:"),
                     dcc.Dropdown(
                         id='type-dropdown2',
                         options=[
@@ -287,7 +287,7 @@ layout = html.Div([
                                         page_current=0,             # page number that user is on
                                         page_size=20,                # number of rows visible per page
                                         style_cell={                # ensure adequate header width when text is shorter than cell's text
-                                            'minWidth': 95, 'maxWidth': 95, 'width': 95
+                                            'minWidth': 95, 'maxWidth': 300, 'width': 95
                                         },
                                         style_data={                # overflow cells' content into multiple lines
                                             'whiteSpace': 'normal',
