@@ -173,7 +173,7 @@ def set_properties(data, properties_dict, prefix=""):
 # Define a function to create a node and set properties
 
 
-def create_node(tx, data):
+def create_Analysisnode(tx, data):
     query = "CREATE (n:Analysis) SET n = $data"
     tx.run(query, data=data)
 
@@ -194,7 +194,7 @@ def addAnalysisNeo():
     # Create node
 
     with driver.session() as session:
-        session.execute_write(create_node, properties_dict)
+        session.execute_write(create_Analysisnode, properties_dict)
     # Create relationship
     with driver.session() as session:
         session.run("MATCH (u:Input {name: $input_name}), (n:Analysis {analysis_name: $analysis_name}) "
@@ -203,6 +203,38 @@ def addAnalysisNeo():
     print("An Analysis Node has been Added in Neo4j Database!")
 
 # --------------
+
+
+def create_Outputnode(tx, data):
+    query = "CREATE (n:Output) SET n = $data"
+    tx.run(query, data=data)
+
+
+def addOutputNeo():
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with open('config/config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+    analysis_name = config['analysis']['analysis_name']
+    output_name = config['analysis']['output_name']
+    if os.path.exists("results/output.csv"):
+        df = pd.read_csv('results/output.csv')
+        dict_output = df.to_dict('list')
+        dict_output['name'] = output_name
+        print(dict_output)
+        # Create node
+
+        with driver.session() as session:
+            session.execute_write(create_Outputnode, dict_output)
+        # Create relationship
+        with driver.session() as session:
+            session.run("MATCH (o:Output {name: $output_name}), (n:Analysis {analysis_name: $analysis_name}) "
+                        "CREATE (n)-[r:WITH_OUTPUT]->(o)",
+                        output_name=output_name, analysis_name=analysis_name)
+        print("An Output Node has been Added in Neo4j Database!")
+
+    else:
+        print("Output file does not exist")
 
 
 # ----------------------------------------------------

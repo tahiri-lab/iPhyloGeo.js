@@ -435,6 +435,7 @@ def get_paramsInfo(n_clicks, all_rows_data):
             neoCypher_manager.addAnalysisNeo()
 
             # (9) When Analysis finished, save output.csv info into Neo4j :Output node
+            neoCypher_manager.addOutputNeo()
 
             # Write the updated config dictionary back to the YAML file
             with open('config/config.yaml', 'w') as file:
