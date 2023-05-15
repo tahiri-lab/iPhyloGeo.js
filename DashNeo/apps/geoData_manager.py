@@ -1,9 +1,9 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import yaml
-from neo4j.time import DateTime
+# from neo4j.time import DateTime
 
-import neoCypher_manager
+from apps import neoCypher_manager
 
 envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                   'wind_speed_10meters_range', 'wind_speed_50meters_range']
@@ -32,7 +32,7 @@ def get_day_location():
     #     df_day_location['collection_date']).dt.date
     return df_day_location
 # --------------------------------------------------------------
-# (2)  Function to generate climate information
+# (2)  Function to generate mean climate information
 
 
 def get_climate_info(row, interval=3):
@@ -42,7 +42,7 @@ def get_climate_info(row, interval=3):
     date_begin = date_begin.strftime('%Y-%m-%d')
 
     df = neoCypher_manager.get_geoRef(location, date_begin, date_end)
-    geo_dict = {col: df[col].mean() for col in df.columns.tolist()}
+    geo_dict = {col: round(df[col].mean(), 2) for col in df.columns.tolist()}
     return geo_dict
 
 
@@ -97,5 +97,23 @@ def get_seq_MeanGeo(interval=3):
     return df_day_location
 
 
-df = get_seq_MeanGeo(interval=3)
-print(df)
+# df = get_seq_MeanGeo(interval=3)
+# print(df)
+
+
+# ----------------------------------------
+# trying other possible option
+def neo_climate_mean(interval=3):
+    # Get the df_day_location DataFrame
+    df_day_location = get_day_location()
+    locations = df_day_location['location'].tolist()
+    dates = df_day_location['collection_date'].tolist()
+    df_withGeo = neoCypher_manager.get_geoMean(locations, dates, interval=3)
+    return df_withGeo
+
+
+# df = neo_climate_mean(interval=3)
+# print(df)
+
+
+# -----------------------------------------------------------------

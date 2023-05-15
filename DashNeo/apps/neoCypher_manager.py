@@ -98,6 +98,8 @@ def getProteinIdFromSamplesFilter(df, protein_name):
             if record:
                 accession = record["n.accession"]
                 accession_lt.append(accession)
+        # delete duplication if  we have
+        accession_lt = list(set(accession_lt))
     return accession_lt
 
 # ---------Create Input Node and relations based on users sample filter------------------------------------------
@@ -110,20 +112,20 @@ def generate_short_id(length=8):
     return short_id
 
 
-def generate_unique_name():
+def generate_unique_name(nodesLabel):
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
                                   auth=("neo4j", password))
     with driver.session() as session:
         random_name = generate_short_id()
 
         result = session.run(
-            "MATCH (u:User {name: $name}) RETURN COUNT(u)", name=random_name)
+            "MATCH (u:" + nodesLabel + " {name: $name}) RETURN COUNT(u)", name=random_name)
         count = result.single()[0]
 
         while count > 0:
             random_name = generate_short_id()
             result = session.run(
-                "MATCH (u:User {name: $name}) RETURN COUNT(u)", name=random_name)
+                "MATCH (u:" + nodesLabel + " {name: $name}) RETURN COUNT(u)", name=random_name)
             count = result.single()[0]
 
         return random_name
@@ -222,6 +224,43 @@ RETURN n.temperature as temperature, n.precipitation as precipitation, n.relativ
     """
 
     params = {"location": location, "date": date}
+
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results = session.run(query, params)
+        df = pd.DataFrame(results, columns=envFactor_list)
+    return df
+# -------------------------------------------
+
+
+def get_geoMean(locations, dates, interval=3):
+    envFactor_list = ['location', 'collection_date', 'temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+                      'wind_speed_10meters_range', 'wind_speed_50meters_range']
+
+    # Generate the location and date_begin and date_end parameters for the query
+    # date_begin_lt = [(theDay - pd.DateOffset(days=interval)).strftime(
+    #     '%Y-%m-%d') for theDay in dates]
+    # date_end_lt = [theDay.strftime('%Y-%m-%d') for theDay in dates]
+    # params = [{"location": location, "date_begin": date_begin, "date_end": date_end}
+    #           for location, date_begin, date_end in zip(locations, date_begin_lt, date_end_lt)]
+
+    date_begin_lt = [(theDay - pd.DateOffset(days=interval)
+                      ).strftime('%Y-%m-%d') for theDay in dates]
+    print(locations)
+    print(date_begin_lt)
+    date_end_lt = [theDay.strftime('%Y-%m-%d') for theDay in dates]
+    print(date_end_lt)
+    params = [{"location": location, "date_begin": date_begin, "date_end": date_end}
+              for location, date_begin, date_end in zip(locations, date_begin_lt, date_end_lt)]
+
+    query = """
+    UNWIND $params as param
+        MATCH (n:LocationDAY) 
+WHERE n.location = param.location
+    AND n.date>=datetime(param.date_begin) AND n.date<=datetime(param.date_end)
+RETURN n.location as location, param.date_end as collection_date, mean(n.temperature) as temperature, mean(n.precipitation) as precipitation, mean(n.relative_humidity) as relative_humidity, mean(n.specific_humidity) as specific_humidity, mean(n.sky_shortwave_irradiance) as sky_shortwave_irradiance, mean(n.wind_speed_10meter_srange) as wind_speed_10meters_range, mean(n.wind_speed_50meter_srange) as wind_speed_50meters_range
+    """
 
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
                                   auth=("neo4j", password))

@@ -5,14 +5,31 @@ from app import app
 import dash
 from apps import config_manager
 from apps import neoCypher_manager
+from apps import geoData_manager
 import pandas as pd
 import yaml
+import os
 
 
 # -----------------------------------------
+# prepare the structure of DashTable
 envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                   'wind_speed_10meters_range', 'wind_speed_50meters_range'
                   ]
+deletable_columns = [{"name": i, "id": i, "deletable": True,
+                      "selectable": False, "hideable": False}
+                     for i in envFactor_list]
+
+table_columns = [
+    {"name": "id", "id": "id", "deletable": False,
+        "selectable": False, "hideable": False},
+    {"name": "location", "id": "location", "deletable": False,
+        "selectable": False, "hideable": False},
+    {"name": "collection_date", "id": "collection_date",
+        "deletable": False, "selectable": False, "hideable": False},
+]
+table_columns.extend(deletable_columns)
+
 data_env = {
     'id': [],
     'location': [],
@@ -188,6 +205,10 @@ layout = html.Div([
 
         dbc.Row([
             dbc.Col([
+                html.H5(
+                    "Note: Each user's analysis results will be shared for academic purpose!"),
+                html.H5(
+                    "By clicking the Confirm button, you confirm your consent to share all the results of this analysis."),
 
                 dbc.Button("Confirm",
                            id="button-confir-param", outline=True, color="success", className="me-1"),
@@ -218,11 +239,7 @@ layout = html.Div([
                     children=[
                         dash_table.DataTable(
                             id='forCSV-table',
-                            columns=[
-                                {"name": i, "id": i, "deletable": True,
-                                 "selectable": False, "hideable": False}
-                                for i in df_env.columns
-                            ],
+                            columns=table_columns,
                             # the contents of the table
                             data=df_env.to_dict('records'),
                             editable=False,              # allow editing of data inside all cells
@@ -234,40 +251,72 @@ layout = html.Div([
                             # column_selectable="multi",  # allow users to select 'multi' or 'single' columns
                                         # row_selectable="single",     # allow users to select 'multi' or 'single' rows
                                         # choose if user can delete a row (True) or not (False)
-                                        row_deletable=True,
+                            row_deletable=True,
                                         # selected_columns=[],        # ids of columns that user selects
-                                        selected_rows=[],           # indices of rows that user selects
+                            selected_rows=[],           # indices of rows that user selects
                                         # all data is passed to the table up-front or not ('none')
-                                        page_action="native",
-                                        page_current=0,             # page number that user is on
-                                        page_size=20,                # number of rows visible per page
-                                        style_cell={                # ensure adequate header width when text is shorter than cell's text
-                                            'minWidth': 125, 'maxWidth': 300, 'width': 125, 'whiteSpace': 'normal', 'textAlign': 'left'
+                            page_action="native",
+                            page_current=0,             # page number that user is on
+                            page_size=30,                # number of rows visible per page
+                            style_cell={                # ensure adequate header width when text is shorter than cell's text
+                                'minWidth': 125, 'maxWidth': 300, 'width': 125, 'whiteSpace': 'normal', 'textAlign': 'left'
                             },
                             style_data={                # overflow cells' content into multiple lines
-                                            'whiteSpace': 'normal',
-                                            'height': 'auto'
+                                'whiteSpace': 'normal',
+                                'height': 'auto'
                             },
                             style_header={
-                                            'whiteSpace': 'normal',
-                                            'height': 'auto'
+                                'whiteSpace': 'normal',
+                                'height': 'auto'
                             }
                         ),
                         html.Br(),
+
                         dbc.Button("Confirm and Submit",
                                    id="button-submit", outline=True, color="success", className="me-1"),
+                        dbc.Button(id='btn-csv',
+                                   children=[
+                                       html.I(className="fa fa-download mr-1"), "Download to CSV"],
+                                   color="info",
+                                   className="mt-1"
+                                   ),
+                        dcc.Download(id="download-component-csv"),
                         html.Br(),
 
                         # Total rows count
-                        html.Div(id='row-count'),
+                        html.Div(id='success_message'),
                     ]
                 ),
+
 
 
             ], xs=12, sm=12, md=12, lg=12, xl=12),
 
 
             ], justify='around'),
+    # ------------------------------------------
+    dbc.Container([
+
+        html.Br(),
+        dbc.Row([
+                dbc.Col([
+                    html.Br(),
+                    html.Div(id="analysis-info"),
+                    dbc.Button(id='btn-params-info',
+                               children=[
+                                   html.I(className="fa fa-download mr-1"), "Download parameters text file"],
+                               color="info",
+                               className="mt-1",
+                               style={'display': 'none'}
+                               ),
+                    dcc.Download(id="download-component-params"),
+
+
+                ], xs=12, sm=12, md=12, lg=10, xl=10),
+
+                ], justify='around'),
+
+    ], fluid=True),
 
 
 
@@ -309,11 +358,126 @@ def update_table(n, bootstrap, rf, window_size, step_size, strategy, average_int
             config['params']['strategy'] = strategy
             input_id = config['input']['input_name']
             config['params']['geo_file'] = 'config/' + input_id+'.csv'
-            config['params']['seq_file'] = 'config/' + input_id+'fa'
+            config['params']['seq_file'] = 'config/' + input_id+'.fa'
+            # Write the updated dictionary back to the YAML file
+            with open('config/config.yaml', 'w') as file:
+                yaml.dump(config, file)
+        df_seqGeo = geoData_manager.get_seq_MeanGeo(average_interval)
+        table_data = df_seqGeo.to_dict('records')
+        return table_data
+
+# ------------------------------------------------------
+# After submiting the filtered table, analysis will begin
+# (1) Get dataframe
+# (2) update feature_names based on columns' name (config.yaml)
+# (3) update accession_lt based on df['id'] (config.yaml)
+# (4) Create a text file inclue the id of Input, id of Analysis, id of Output --> using config file, user can download it (name a copy: ''config/params_info.txt'')
+# (5) save df filtered as geo_file (csv format)
+# ---------------------
+# (6) download sequences from NCBI based on df['id'], then do MSA (multiple sequence alignment), save alignment file as seq_file (fasta format)
+# (7) In Neo4j create :Analysis node (save the info of config.yaml)
+# (8) run snakemake workflow
+# (9) When Analysis finished, save output.csv info into Neo4j :Output node
+
+
+@app.callback(
+    Output('success_message', 'children'),
+    Output('btn-params-info', 'style'),
+    Input('button-submit', 'n_clicks'),
+    State(component_id='forCSV-table',
+          component_property="derived_virtual_data"),
+    # prevent_initial_call=True
+)
+def get_paramsInfo(n_clicks, all_rows_data):
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        dff = pd.DataFrame(all_rows_data)
+        analysisNode_name = neoCypher_manager.generate_unique_name("Analysis")
+        outputNode_name = neoCypher_manager.generate_unique_name("Output")
+
+        if dff.empty != True:
+            with open('config/config.yaml', 'r') as file:
+                config = yaml.safe_load(file)
+                # Update the values
+            config['seqinfo']['accession_lt'] = dff['id'].tolist()  # (3)
+            config['params']['feature_names'] = dff.columns.tolist()[3:]  # (2)
+            config['analysis']['analysis_name'] = analysisNode_name
+            config['analysis']['output_name'] = outputNode_name
+            csv_file_name = config['params']['seq_file']
+            dff.to_csv(csv_file_name, index=False, encoding='utf-8')  # (5)
             # Write the updated dictionary back to the YAML file
             with open('config/config.yaml', 'w') as file:
                 yaml.dump(config, file)
 
+            success_message = dbc.Card([
+                dbc.CardImg(src="/assets/workflow.png", top=True),
+                dbc.CardBody(
+                    [
+                        html.H4("Parameters Information",
+                                className="card-title"),
+                        html.H5('Input Id: {}'.format(
+                            config['input']['input_name'])),
+                        html.H5('Analysis Id: {}'.format(
+                            config['analysis']['analysis_name'])),
+                        html.H5('Output Id: {}'.format(
+                            config['analysis']['output_name'])),
+
+                        html.P(
+                            """
+                                    The results of the analysis can be retrieved by ID on the Output Exploration page.
+                                    You can also explore the available analysis results on the Output Exploration page.
+                                    """,
+                            className="card-text",
+                        ),
+                        # dbc.CardLink(
+                        #     "Github", href="https://github.com/tahiri-lab/aPhyloGeo-pipeline"),
+                    ]
+                ),
+            ],
+                # style={"width": "45%"},
+            ),
+
+            html.Div([
+                html.H3('Parameters Information'),
+
+            ])
+            return success_message, {'display': 'block'}
+
+# -----------------------------------------------------------------------
+# for download button
+
+
+@app.callback(
+    Output("download-component-csv", "data"),
+    Input("btn-csv", "n_clicks"),
+    State('forCSV-table', "derived_virtual_data"),
+    prevent_initial_call=True,
+)
+def func(n_clicks, all_rows_data):
+    dff = pd.DataFrame(all_rows_data)
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        return dcc.send_data_frame(dff.to_csv, "aphyloGeo_input.csv")
+
+
+@app.callback(
+    Output("download-component-params", "data"),
+    Input("btn-params-info", "n_clicks"),
+    prevent_initial_call=True,
+)
+def func(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        with open('config/config.yaml', 'r') as file:
+            config = yaml.safe_load(file)
+        # Convert YAML data to text
+        text = yaml.dump(config)
+        return dict(content=text, filename="params_info.txt")
+
+# ----------------------------------------------------------------------
 
 # --------------------------------------------------------------
 # get seq length and input node id

@@ -707,7 +707,7 @@ def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
             print(
                 f'---------------submitted df-----location_filter---------Size {dff.shape}')
             # print(dff)
-            inputNode_name = neoCypher_manager.generate_unique_name()
+            inputNode_name = neoCypher_manager.generate_unique_name("Input")
             if seq_type == 'dna':
                 config_manager.update_paramsYaml('data_type', seq_type)
                 seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
@@ -760,7 +760,7 @@ def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
             print(
                 f'---------------submitted df-------lineage_filter-------Size {dff.shape}')
             # print(dff)
-            inputNode_name = neoCypher_manager.generate_unique_name()
+            inputNode_name = neoCypher_manager.generate_unique_name("Input")
             if seq_type == 'dna':
                 config_manager.update_paramsYaml('data_type', seq_type)
                 seq_accession_lt = neoCypher_manager.getNucleoIdFromSamplesFilter(
