@@ -31,34 +31,71 @@ def get_day_location():
     # df_day_location['collection_date'] = pd.to_datetime(
     #     df_day_location['collection_date']).dt.date
     return df_day_location
-
+# --------------------------------------------------------------
 # (2)  Function to generate climate information
 
 
-def get_climate_info(row):
+def get_climate_info(row, interval=3):
+    location = row['location']
+    date_end = row['collection_date'].strftime('%Y-%m-%d')
+    date_begin = row['collection_date'] - pd.DateOffset(days=interval)
+    date_begin = date_begin.strftime('%Y-%m-%d')
+
+    df = neoCypher_manager.get_geoRef(location, date_begin, date_end)
+    geo_dict = {col: df[col].mean() for col in df.columns.tolist()}
+    return geo_dict
+
+
+def get_climate_Onedayinfo(row):
     location = row['location']
     date = row['collection_date'].strftime('%Y-%m-%d')
 
     df = neoCypher_manager.get_geoOneDay(location, date)
     geo_dict = {col: df[col] for col in df.columns.tolist()}
     return geo_dict
+# --------------------------------------------------------
+# (3) Concatenate Seq and Geo
 
 
-# Get the df_day_location DataFrame
-df_day_location = get_day_location()
+def get_seq_oneDayGeo():
+    # Get the df_day_location DataFrame
+    df_day_location = get_day_location()
 
-# Apply the function to each row of df_day_location and update the DataFrame with climate information
-df_day_location['climate_info'] = df_day_location.apply(
-    lambda row: get_climate_info(row), axis=1)
-# Extract keys from the first row of the climate_info column
-keys = df_day_location['climate_info'].iloc[0].keys()
+    # Apply the function to each row of df_day_location and update the DataFrame with climate information
+    df_day_location['climate_info'] = df_day_location.apply(
+        lambda row: get_climate_Onedayinfo(row), axis=1)
+    # Extract keys from the first row of the climate_info column
+    keys = df_day_location['climate_info'].iloc[0].keys()
 
-# Create new columns for each key and extract the corresponding values
-for key in keys:
-    df_day_location[key] = df_day_location['climate_info'].apply(
-        lambda x: x.get(key))
+    # Create new columns for each key and extract the corresponding values
+    for key in keys:
+        df_day_location[key] = df_day_location['climate_info'].apply(
+            lambda x: x.get(key))
 
-# Drop the original climate_info column
-df_day_location.drop('climate_info', axis=1, inplace=True)
+    # Drop the original climate_info column
+    df_day_location.drop('climate_info', axis=1, inplace=True)
+    return df_day_location
 
-print(df_day_location)
+
+def get_seq_MeanGeo(interval=3):
+    # Get the df_day_location DataFrame
+    df_day_location = get_day_location()
+
+    # Apply the function to each row of df_day_location and update the DataFrame with climate information
+    df_day_location['climate_info'] = df_day_location.apply(
+        lambda row: get_climate_info(row, interval), axis=1)
+    # Extract keys from the first row of the climate_info column
+    keys = df_day_location['climate_info'].iloc[0].keys()
+
+    # Create new columns for each key and extract the corresponding values
+    for key in keys:
+        df_day_location[key] = df_day_location['climate_info'].apply(
+            lambda x: x.get(key))
+
+    # Drop the original climate_info column
+    df_day_location.drop('climate_info', axis=1, inplace=True)
+    return df_day_location
+
+
+df = get_seq_MeanGeo(interval=3)
+print(df)
