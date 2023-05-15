@@ -6,8 +6,11 @@ import dash
 from apps import config_manager
 from apps import neoCypher_manager
 from apps import geoData_manager
+from apps import seqData_manager
 import pandas as pd
 import yaml
+import shutil
+# import time
 import os
 
 
@@ -375,8 +378,8 @@ def update_table(n, bootstrap, rf, window_size, step_size, strategy, average_int
 # (5) save df filtered as geo_file (csv format)
 # ---------------------
 # (6) download sequences from NCBI based on df['id'], then do MSA (multiple sequence alignment), save alignment file as seq_file (fasta format)
-# (7) In Neo4j create :Analysis node (save the info of config.yaml)
-# (8) run snakemake workflow
+# (7) run snakemake workflow
+# (8) In Neo4j create :Analysis node (save the info of config.yaml)
 # (9) When Analysis finished, save output.csv info into Neo4j :Output node
 
 
@@ -404,9 +407,33 @@ def get_paramsInfo(n_clicks, all_rows_data):
             config['params']['feature_names'] = dff.columns.tolist()[3:]  # (2)
             config['analysis']['analysis_name'] = analysisNode_name
             config['analysis']['output_name'] = outputNode_name
-            csv_file_name = config['params']['seq_file']
+            csv_file_name = config['params']['geo_file']
             dff.to_csv(csv_file_name, index=False, encoding='utf-8')  # (5)
-            # Write the updated dictionary back to the YAML file
+            # -------
+            aln_file_name = config['params']['seq_file']
+            seq_beforeMSA_fname = aln_file_name + '_raw'
+            if config['params']['data_type'] == 'aa':
+                db_type = "protein"
+            else:
+                db_type = "nucleotide"
+            accession_list = config['seqinfo']['accession_lt']
+            # (6) download sequences from NCBI based on df['id'],
+
+            seqData_manager.downFromNCBI(
+                db_type, accession_list, seq_beforeMSA_fname)
+            # (6) alignment
+            seqData_manager.align_withMAFFT(seq_beforeMSA_fname, aln_file_name)
+            # run aphylogeo snakemake workflow
+            # Wait for 1 seconds
+            # time.sleep(1)
+            # delete redundant files
+            shutil.rmtree('./results')
+            os.mkdir('./results')
+            # (7) run snakemake workflow
+            os.system("snakemake --cores all")
+            # (8) In Neo4j create :Analysis node (save the info of config.yaml)
+
+            # Write the updated config dictionary back to the YAML file
             with open('config/config.yaml', 'w') as file:
                 yaml.dump(config, file)
 
