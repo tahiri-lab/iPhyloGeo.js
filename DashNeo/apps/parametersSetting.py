@@ -432,6 +432,9 @@ def get_paramsInfo(n_clicks, all_rows_data):
             # (7) run snakemake workflow
             os.system("snakemake --cores all")
             # (8) In Neo4j create :Analysis node (save the info of config.yaml)
+            neoCypher_manager.addAnalysisNeo()
+
+            # (9) When Analysis finished, save output.csv info into Neo4j :Output node
 
             # Write the updated config dictionary back to the YAML file
             with open('config/config.yaml', 'w') as file:

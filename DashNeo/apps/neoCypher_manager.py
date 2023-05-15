@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 import secrets
 import string
+import yaml
+from datetime import datetime
 # For Neo4j Connection
 load_dotenv("my.env")
 password = os.getenv("NEO_PASS")
@@ -155,7 +157,53 @@ def addInputNeo(nodesLabel, inputNode_name, id_list):
                 session.run("MATCH (u:Input {name: $name}), (n:" + nodesLabel + " {accession: $id}) "
                             "CREATE (n)-[r:IN_INPUT]->(u)",
                             name=inputNode_name, nodesLabel=nodesLabel, id=other_node["accession"])
-    print("An Input Node is Added in Neo4j Database!")
+    print("An Input Node has been Added in Neo4j Database!")
+
+# --------====-----------------
+# Create Analysis Node and its relationship
+
+
+def set_properties(data, properties_dict, prefix=""):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            set_properties(value, properties_dict, prefix + key + "&&")
+        else:
+            properties_dict[key] = value
+
+# Define a function to create a node and set properties
+
+
+def create_node(tx, data):
+    query = "CREATE (n:Analysis) SET n = $data"
+    tx.run(query, data=data)
+
+
+def addAnalysisNeo():
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+
+    properties_dict = {}
+    with open('config/config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+
+    # Set the properties of the node using the yaml_data
+    set_properties(config, properties_dict)
+    input_name = properties_dict['input_name']
+    analysis_name = properties_dict['analysis_name']
+    create_time = datetime.now().isoformat()
+    # Create node
+
+    with driver.session() as session:
+        session.execute_write(create_node, properties_dict)
+    # Create relationship
+    with driver.session() as session:
+        session.run("MATCH (u:Input {name: $input_name}), (n:Analysis {analysis_name: $analysis_name}) "
+                    "CREATE (u)-[r:FOR_ANALYSIS {create_time: $create_time}]->(n)",
+                    input_name=input_name, analysis_name=analysis_name, create_time=create_time)
+    print("An Analysis Node has been Added in Neo4j Database!")
+
+# --------------
+
 
 # ----------------------------------------------------
 
