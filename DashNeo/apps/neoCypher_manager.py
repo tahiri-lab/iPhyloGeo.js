@@ -236,6 +236,31 @@ def addOutputNeo():
     else:
         print("Output file does not exist")
 
+# --------------------------------------
+
+
+def get_outputdf(output_id):
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    query = """
+        MATCH (n:Output {name: $output_id}) 
+        RETURN n.window_pos as window_position, n.ref_feature as feature, n.bootstrap_average as bootstrap_average, n.normalized_RF as normalized_RF;
+    """
+    params = {"output_id": output_id}
+    with driver.session() as session:
+        results = session.run(query, params)
+        record = results.data()[0]
+    data_output = {
+        'window_position': record['window_position'],
+        'feature': record['feature'],
+        'bootstrap_average': record['bootstrap_average'],
+        'normalized_RF': record['normalized_RF']
+    }
+
+    df_output = pd.DataFrame(data_output)
+
+    return df_output
+
 
 # ----------------------------------------------------
 

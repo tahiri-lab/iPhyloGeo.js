@@ -9,7 +9,7 @@ from app import app
 from app import server
 
 # Connect to your app pages
-from apps import homePage, neoExplore, parametersSetting
+from apps import homePage, neoExplore, parametersSetting, outputExplore
 
 
 # styling the sidebar
@@ -42,10 +42,8 @@ sidebar = html.Div(
              dbc.NavLink("Cov-Lineages Exploreration",
                          href='/apps/neoExplore', active="exact"),
              # dbc.NavLink("Perameters", href='/apps/parameters', active="exact"),
-             # dbc.NavLink("Using Our Meteorological Data (SARS-CoV-2)", href='/apps/usingOurDataset', active="exact"),
-             # dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, whole sequences)", href='/apps/pipelineWithOurData', active="exact"),
-             # dbc.NavLink("Phylogeography Analysis With Our Data (SARS-CoV-2, specific genes)", href='/apps/pipelineCoVGenes', active="exact"),
-             # dbc.NavLink("Check Results", href='/apps/checkResults', active="exact"),
+             dbc.NavLink("Output Exploration",
+                         href='/apps/outputs', active="exact"),
              ],
             vertical=True,
             pills=True,
@@ -74,10 +72,8 @@ def display_page(pathname):
         return parametersSetting.layout
     # if pathname.startswith('/apps/parameters'):
     #     return parametersSetting.layout
-    # if pathname == '/apps/usingOurDataset':
-    #     return usingOurDataset.layout
-    # if pathname == '/apps/pipelineWithOurData':
-    #     return pipelineWithOurData.layout
+    if pathname == '/apps/outputs':
+        return outputExplore.layout
     else:
         return homePage.layout
 
