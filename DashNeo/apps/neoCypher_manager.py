@@ -221,7 +221,7 @@ def addOutputNeo():
         df = pd.read_csv('results/output.csv')
         dict_output = df.to_dict('list')
         dict_output['name'] = output_name
-        print(dict_output)
+        # print(dict_output)
         # Create node
 
         with driver.session() as session:
