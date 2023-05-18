@@ -278,6 +278,23 @@ def get_seq_length(nodesLabel, seq_list):
         length = result.single()[0]
     return length
 
+
+def get_seqByInputName(input_name):
+    # Execute the Cypher query
+    driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",
+                                  auth=("neo4j", password))
+    with driver.session() as session:
+        results = session.run(
+            "MATCH (n) -[r:IN_INPUT]->(i:Input {name:$input_name}) RETURN n.accession as accession, n.length as length",
+            input_name=input_name
+        )
+    # Transform the results to a DataFrame
+        df = pd.DataFrame(results, columns=['accession', 'length'])
+        seq_list = df['accession'].tolist()
+        length_min = min(df['length'].tolist())
+    return seq_list, length_min
+
+
 # ---------------------------
 # have accession list get location, collection_date, put all the results in a dataframe
 

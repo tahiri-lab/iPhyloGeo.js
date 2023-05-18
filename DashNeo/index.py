@@ -9,7 +9,7 @@ from app import app
 from app import server
 
 # Connect to your app pages
-from apps import homePage, neoExplore, parametersSetting, outputExplore
+from apps import homePage, neoExplore, parametersSetting, outputExplore, paramsTuning
 
 
 # styling the sidebar
@@ -44,6 +44,8 @@ sidebar = html.Div(
              # dbc.NavLink("Perameters", href='/apps/parameters', active="exact"),
              dbc.NavLink("Output Exploration",
                          href='/apps/outputs', active="exact"),
+             dbc.NavLink("Parameters Tuning",
+                         href='/apps/paramsTuning', active="exact"),
              ],
             vertical=True,
             pills=True,
@@ -70,8 +72,8 @@ def display_page(pathname):
         return neoExplore.layout
     if pathname == '/apps/parameters':
         return parametersSetting.layout
-    # if pathname.startswith('/apps/parameters'):
-    #     return parametersSetting.layout
+    if pathname == '/apps/paramsTuning':
+        return paramsTuning.layout
     if pathname == '/apps/outputs':
         return outputExplore.layout
     else:

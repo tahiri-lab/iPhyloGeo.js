@@ -20,7 +20,7 @@ data_output = {
 df_output = pd.DataFrame(data_output)
 # -----------------------------------------
 layout = html.Div([
-    html.Div(html.H2("Phylogeography"), style={"text-align": "center"}),
+    html.Div(html.H2("Phylogeography Output"), style={"text-align": "center"}),
     html.Hr(),
     # ----------
     dbc.Container([
@@ -94,10 +94,18 @@ layout = html.Div([
                                             'height': 'auto'
                                         }
                                     ),
+                                    # html.Br(),
+
                                     html.Br(),
-                                    dbc.Button("Confirm samples Selection",
-                                               id="button-confir-filter", outline=True, color="success", className="me-1"),
+                                    dbc.Button(id='btn-csv2',
+                                               children=[
+                                                   html.I(className="fa fa-download mr-1"), "Download to CSV"],
+                                               color="info",
+                                               className="mt-1"
+                                               ),
+                                    dcc.Download(id="download-component-csv2"),
                                     html.Br(),
+
 
                                     html.Div(),
                                 ]
@@ -117,6 +125,8 @@ layout = html.Div([
             ], xs=12, sm=12, md=12, lg=12, xl=12),
 
         ], justify='around'),
+
+
         # ----Row 1 end ---
         html.Hr(),
         html.Br(),
@@ -150,6 +160,22 @@ layout = html.Div([
 ])
 
 # ----------------------------
+
+# for download button
+
+
+@app.callback(
+    Output("download-component-csv2", "data"),
+    Input("btn-csv2", "n_clicks"),
+    State('output-table', "derived_virtual_data"),
+    prevent_initial_call=True,
+)
+def func(n_clicks, all_rows_data):
+    dff = pd.DataFrame(all_rows_data)
+    if n_clicks is None:
+        return dash.no_update
+    else:
+        return dcc.send_data_frame(dff.to_csv, "aphyloGeo_output.csv")
 
 
 @app.callback(
