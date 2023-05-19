@@ -5,7 +5,7 @@ import yaml
 
 from apps import neoCypher_manager
 
-envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+envFactor_list = ['precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                   'wind_speed_10meters_range', 'wind_speed_50meters_range']
 # (1) have accession list get location, collection_date, put all the results in a dataframe
 

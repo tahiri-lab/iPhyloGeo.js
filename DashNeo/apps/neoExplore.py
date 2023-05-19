@@ -821,24 +821,3 @@ def get_sequences(n_clicks, seq_type, protein_name, all_rows_data):
             )
 
             return output_conrainer
-
-# ----------------------------------------------------------------
-# change the page URL
-
-
-# @app.callback(
-#     Output('url', 'pathname'),
-#     State('submit_message', 'children'),
-#     State('submit_message2', 'children'),
-#     Input('button-confir-filter', 'n_clicks'),
-#     Input('button-confir-samples', 'n_clicks'),
-# )
-# def update_url(m1, m2, n1, n2):
-#     if n1 is None and n2 is None:
-#         return dash.no_update
-#     elif m1 is not None or m1 != '':
-#         print(m1)
-#         return 'apps/parameters'
-#     elif m2 is not None or m2 != '':
-#         print(m2)
-#         return 'apps/parameters'

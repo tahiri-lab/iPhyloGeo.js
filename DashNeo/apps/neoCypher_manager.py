@@ -317,13 +317,13 @@ def get_dfDayLocation(nodesLabel, seq_list):
 
 
 def get_geoRef(location, date_begin, date_end):
-    envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+    envFactor_list = ['precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                       'wind_speed_10meters_range', 'wind_speed_50meters_range']
     query = """
         MATCH (n:LocationDAY) 
 WHERE n.location = $location
     AND n.date>=datetime($date_begin) AND n.date<=datetime($date_end)
-RETURN n.temperature as temperature, n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
+RETURN  n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
     """
 
     params = {"location": location, "date_begin": date_begin,
@@ -338,13 +338,13 @@ RETURN n.temperature as temperature, n.precipitation as precipitation, n.relativ
 
 
 def get_geoOneDay(location, date):
-    envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+    envFactor_list = ['precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                       'wind_speed_10meters_range', 'wind_speed_50meters_range']
     query = """
         MATCH (n:LocationDAY) 
 WHERE n.location = $location
     AND n.date=datetime($date) 
-RETURN n.temperature as temperature, n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
+RETURN  n.precipitation as precipitation, n.relative_humidity as relative_humidity, n.specific_humidity as specific_humidity, n.sky_shortwave_irradiance as sky_shortwave_irradiance, n.wind_speed_10meter_srange as wind_speed_10meters_range, n.wind_speed_50meter_srange as wind_speed_50meters_range
     """
 
     params = {"location": location, "date": date}
@@ -359,7 +359,7 @@ RETURN n.temperature as temperature, n.precipitation as precipitation, n.relativ
 
 
 def get_geoMean(locations, dates, interval=3):
-    envFactor_list = ['location', 'collection_date', 'temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+    envFactor_list = ['location', 'collection_date', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                       'wind_speed_10meters_range', 'wind_speed_50meters_range']
 
     # Generate the location and date_begin and date_end parameters for the query
@@ -383,7 +383,7 @@ def get_geoMean(locations, dates, interval=3):
         MATCH (n:LocationDAY) 
 WHERE n.location = param.location
     AND n.date>=datetime(param.date_begin) AND n.date<=datetime(param.date_end)
-RETURN n.location as location, param.date_end as collection_date, mean(n.temperature) as temperature, mean(n.precipitation) as precipitation, mean(n.relative_humidity) as relative_humidity, mean(n.specific_humidity) as specific_humidity, mean(n.sky_shortwave_irradiance) as sky_shortwave_irradiance, mean(n.wind_speed_10meter_srange) as wind_speed_10meters_range, mean(n.wind_speed_50meter_srange) as wind_speed_50meters_range
+RETURN n.location as location, param.date_end as collection_date, mean(n.precipitation) as precipitation, mean(n.relative_humidity) as relative_humidity, mean(n.specific_humidity) as specific_humidity, mean(n.sky_shortwave_irradiance) as sky_shortwave_irradiance, mean(n.wind_speed_10meter_srange) as wind_speed_10meters_range, mean(n.wind_speed_50meter_srange) as wind_speed_50meters_range
     """
 
     driver = GraphDatabase.driver("neo4j+ssc://2bb60b41.databases.neo4j.io:7687",

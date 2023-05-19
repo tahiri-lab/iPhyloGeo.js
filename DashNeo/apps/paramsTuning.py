@@ -16,7 +16,7 @@ import os
 
 # -----------------------------------------
 # prepare the structure of DashTable
-envFactor_list = ['temperature', 'precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
+envFactor_list = ['precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                   'wind_speed_10meters_range', 'wind_speed_50meters_range'
                   ]
 deletable_columns = [{"name": i, "id": i, "deletable": True,
@@ -37,7 +37,6 @@ data_env = {
     'id': [],
     'location': [],
     'collection_date': [],
-    'temperature': [],
     'precipitation': [],
     'relative_humidity': [],
     'specific_humidity': [],
@@ -187,10 +186,25 @@ layout = html.Div([
 
         dbc.Row([
             dbc.Col([
-                html.H5(
-                    "Note: Each user's analysis results will be shared for academic purpose!"),
-                html.H5(
-                    "By clicking the Confirm button, you confirm your consent to share all the results of this analysis."),
+                dbc.Card([
+                    dbc.CardBody(
+                        html.Div(
+                            children=[
+                                html.H5(
+                                    "Note: Each user's analysis results will be shared for academic purposes!",
+                                    style={'color': 'blue',
+                                           'font-weight': 'bold'}
+                                ),
+                                html.H5(
+                                    "By clicking the Confirm button, you confirm your consent to share all the results of this analysis.",
+                                    style={'color': 'blue',
+                                           'font-weight': 'bold'}
+                                )
+                            ]
+                        ),
+                    )
+                ]),
+                html.Br(),
 
                 dbc.Button("Confirm",
                            id="button-confir-param2", outline=True, color="success", className="me-1"),
@@ -247,8 +261,8 @@ layout = html.Div([
                         ),
                         html.Br(),
 
-                        dbc.Button("Confirm and Submit2",
-                                   id="button-submit", outline=True, color="success", className="me-1"),
+                        dbc.Button("Confirm and Submit",
+                                   id="button-submit2", outline=True, color="success", className="me-1"),
                         dbc.Button(id='btn-csv2',
                                    children=[
                                        html.I(className="fa fa-download mr-1"), "Download to CSV"],
@@ -259,6 +273,7 @@ layout = html.Div([
                         html.Br(),
 
                         # Total rows count
+                        html.Div(id='row-count4'),
                         html.Div(id='success_message2'),
                     ]
                 ),
@@ -369,10 +384,11 @@ def get_paramsInfo(n_clicks, all_rows_data):
         return dash.no_update
     else:
         dff = pd.DataFrame(all_rows_data)
+        dff.dropna(inplace=True)
         analysisNode_name = neoCypher_manager.generate_unique_name("Analysis")
         outputNode_name = neoCypher_manager.generate_unique_name("Output")
 
-        if dff.empty != True:
+        if dff.empty != True and len(dff) > 4:
             with open('config/config.yaml', 'r') as file:
                 config = yaml.safe_load(file)
                 # Update the values
@@ -415,7 +431,7 @@ def get_paramsInfo(n_clicks, all_rows_data):
                 yaml.dump(config, file)
 
             success_message = dbc.Card([
-                dbc.CardImg(src="/assets/workflow.png", top=True),
+                # dbc.CardImg(src="/assets/workflow.png", top=True),
                 dbc.CardBody(
                     [
                         html.H4("Parameters Information",
@@ -447,6 +463,21 @@ def get_paramsInfo(n_clicks, all_rows_data):
 
             ])
             return success_message, {'display': 'block'}
+        else:
+            warning_message = dbc.Card([
+                dbc.CardBody(
+                    html.Div(
+                        children=[
+                            html.H5(
+                                "Note: The number of samples should be greater than 4!",
+                                style={'color': 'blue',
+                                       'font-weight': 'bold'}
+                            ),
+                        ]
+                    ),
+                )
+            ])
+            return warning_message, {'display': 'none'}
 
 # -----------------------------------------------------------------------
 # for download button
@@ -581,3 +612,15 @@ def update_output(windowSize, ref_genes_len):
 
 
 # -------------------------------------------------
+@ app.callback(
+    Output('row-count4', 'children'),
+    [Input(component_id='forCSV-table2',
+           component_property="derived_virtual_data")]
+)
+def check_update(all_rows_data):
+    dff = pd.DataFrame(all_rows_data)
+
+    print("shape", dff.shape)
+
+    row_count = html.H5("Selected Data Size: {}".format(len(dff))),
+    return row_count
