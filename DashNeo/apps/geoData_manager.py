@@ -117,3 +117,11 @@ def neo_climate_mean(interval=3):
 
 
 # -----------------------------------------------------------------
+# To make the table in the web appear normal
+def df_colnamesTransfer(df, oldcols_lt, newcols_lt):
+    if df.columns.tolist() == oldcols_lt:
+        df.rename(columns=dict(zip(oldcols_lt, newcols_lt)), inplace=True)
+
+        return df
+    else:
+        print("column name error")
