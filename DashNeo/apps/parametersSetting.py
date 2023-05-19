@@ -179,7 +179,7 @@ layout = html.Div([
                     dcc.RadioItems(
                         id='strategy-radio',
                         options=[
-                            {'label': 'RAxML-Ng', 'value': 'raxml'},
+                            {'label': 'RAxML-NG', 'value': 'raxml'},
                             {'label': 'FastTree', 'value': 'fasttree'}
                         ],
                         value='fasttree'
@@ -208,10 +208,25 @@ layout = html.Div([
 
         dbc.Row([
             dbc.Col([
-                html.H5(
-                    "Note: Each user's analysis results will be shared for academic purpose!"),
-                html.H5(
-                    "By clicking the Confirm button, you confirm your consent to share all the results of this analysis."),
+                dbc.Card([
+                    dbc.CardBody(
+                        html.Div(
+                            children=[
+                                html.H5(
+                                    "Note: Each user's analysis results will be shared for academic purposes!",
+                                    style={'color': 'blue',
+                                           'font-weight': 'bold'}
+                                ),
+                                html.H5(
+                                    "By clicking the Confirm button, you confirm your consent to share all the results of this analysis.",
+                                    style={'color': 'blue',
+                                           'font-weight': 'bold'}
+                                )
+                            ]
+                        ),
+                    )
+                ]),
+                html.Br(),
 
                 dbc.Button("Confirm",
                            id="button-confir-param", outline=True, color="success", className="me-1"),

@@ -84,7 +84,7 @@ card3 = dbc.Card(
 
 card4 = dbc.Card(
     [
-        dbc.CardImg(src="/assets/workflow.png", top=True),
+        dbc.CardImg(src="/assets/visualisation_schema.png", top=True),
         dbc.CardBody(
             [
                 html.H4("The aPhyloGeo-pipeline analysis workflow",

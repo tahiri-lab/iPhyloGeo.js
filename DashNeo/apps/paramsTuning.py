@@ -158,7 +158,7 @@ layout = html.Div([
                     dcc.RadioItems(
                         id='strategy-radio2',
                         options=[
-                            {'label': 'RAxML-Ng', 'value': 'raxml'},
+                            {'label': 'RAxML-NG', 'value': 'raxml'},
                             {'label': 'FastTree', 'value': 'fasttree'}
                         ],
                         value='fasttree'

@@ -30,7 +30,7 @@ def get_databaseProperties_list():
     location_lt = [item for item in location_list if item is not None]
     protein_lt = [item for item in protein_list if item is not None]
     lineage_lt = [item for item in lineage_list if item is not None]
-    return location_lt, protein_lt, lineage_lt
+    return sorted(location_lt), sorted(protein_lt), sorted(lineage_lt)
 # -----------Neo4j query function------------------------------
 
 
@@ -71,6 +71,8 @@ def getNucleoIdFromSamplesFilter(df):
             if record:
                 accession = record["n.accession"]
                 accession_lt.append(accession)
+             # delete duplication if  we have
+        accession_lt = list(set(accession_lt))
     return accession_lt
 
 

@@ -55,10 +55,25 @@ layout = html.Div([
                 dbc.Collapse([
                     html.H5(
                         "Select the group(s) of lineage to be studied:"),
-                    dcc.Checklist(id='choice-lineage',
-                                  options=[{'label': x, 'value': x}
-                                           for x in lineage_list],
-                                  labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
+
+                    dbc.Card([
+                        dbc.CardBody(
+                            dbc.Checklist(
+
+                                id='choice-lineage',
+                                options=[{'label': x, 'value': x}
+                                         for x in lineage_list],
+                                inline='inline-block',
+                                style={'display': 'flex',
+                                       'flex-wrap': 'wrap', 'width': '100%'}
+                            )
+                        )
+                    ]),
+                    # --------------------
+                    # dcc.Checklist(id='choice-lineage',
+                    #               options=[{'label': x, 'value': x}
+                    #                        for x in lineage_list],
+                    #               labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
                     # First dropdown for selecting DNA or Protein
                     html.H5(
                         "Select the type sequences data to be studied:"),
@@ -216,10 +231,23 @@ layout = html.Div([
                     ),
                     html.H5(
                         "Select the locations to be studied:"),
-                    dcc.Checklist(id='choice-location',
-                                  options=[{'label': x, 'value': x}
-                                           for x in location_list],
-                                  labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
+                    dbc.Card([
+                        dbc.CardBody(
+                            dbc.Checklist(
+                                id='choice-location',
+                                options=[{'label': x, 'value': x}
+                                         for x in location_list],
+                                inline='inline-block',
+                                style={'display': 'flex',
+                                       'flex-wrap': 'wrap', 'width': '100%'}
+                            )
+                        )
+                    ]),
+
+                    # dcc.Checklist(id='choice-location',
+                    #               options=[{'label': x, 'value': x}
+                    #                        for x in location_list],
+                    #               labelStyle={'display': 'inline-block', 'marginRight': '20px'}),
                     # First dropdown for selecting DNA or Protein
                     html.H5(
                         "Select the type sequences data to be studied:"),
@@ -373,7 +401,7 @@ layout = html.Div([
 # ----------------------------
 
 
-@app.callback(
+@ app.callback(
     Output("exploreLocation", "is_open"),
     [Input("button-ExploreLocation", "n_clicks")],
     [State("exploreLocation", "is_open")],
@@ -384,7 +412,7 @@ def toggle_collapse(n, is_open):
     return is_open
 
 
-@app.callback(
+@ app.callback(
     Output("exploreLineage", "is_open"),
     [Input("button-ExploreLineage", "n_clicks")],
     [State("exploreLineage", "is_open")],
@@ -397,7 +425,7 @@ def toggle_collapse(n, is_open):
 # select protein name
 
 
-@app.callback(
+@ app.callback(
     Output('protein-name-container2', 'style'),
     Output('protein-name-radio2', 'value'),
     Input('type-dropdown2', 'value')
@@ -409,7 +437,7 @@ def display_protein_name_dropdown(value):
         return {'display': 'none'}, None
 
 
-@app.callback(
+@ app.callback(
     Output('protein-name-container', 'style'),
     Output('protein-name-radio', 'value'),
     Input('type-dropdown', 'value')
@@ -423,7 +451,7 @@ def display_protein_name_dropdown(value):
 # Check seque type selected
 
 
-@app.callback(
+@ app.callback(
     Output('output-container2', 'children'),
     Input('type-dropdown2', 'value'),
     Input('protein-name-radio2', 'value'),
@@ -436,7 +464,7 @@ def display_selected_values(type_value, protein_name):
         return f'Selected type: {type_value}'
 
 
-@app.callback(
+@ app.callback(
     Output('output-container', 'children'),
     Input('type-dropdown', 'value'),
     Input('protein-name-radio', 'value'),
@@ -451,7 +479,7 @@ def display_selected_values(type_value, protein_name):
 
 # --------------------------------------------
 # filtering table update
-@app.callback(
+@ app.callback(
     Output('location-table', 'data'),
     Output('valid-message2', 'children'),
     [Input('button-confir-lineage2', 'n_clicks'),
@@ -516,7 +544,7 @@ def update_table(n, start_date_string, end_date_string, checklist_value, seqType
             return None, message
 
 
-@app.callback(
+@ app.callback(
     Output('lineage-table', 'data'),
     Output('valid-message', 'children'),
     [Input('button-confir-lineage', 'n_clicks'),
@@ -573,7 +601,7 @@ def update_table(n, checklist_value, seqType_value):
 
 
 # ---------- Visual Cyto----------------------
-@app.callback(
+@ app.callback(
     Output('row-count2', 'children'),
     Output('cyto-container2', 'children'),
     [
