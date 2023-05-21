@@ -21,6 +21,15 @@ location_list, protein_list, lineage_list = neoCypher_manager.get_databaseProper
 # print(lineage_list)
 # ------------------------------------------------------
 # for lineage data search: creat a empty table at the begining (place holder)
+# data_lineage = {
+#     'Lineage': [],
+#     'Earliest date': [],
+#     'Latest Date': [],
+#     'ISO code': [],
+#     'Most Common Country': [],
+#     'Rate': [],
+# }
+
 
 data_lineage = {
     'lineage': [],

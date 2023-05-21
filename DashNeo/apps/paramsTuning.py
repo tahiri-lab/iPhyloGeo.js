@@ -16,6 +16,17 @@ import os
 
 # -----------------------------------------
 # prepare the structure of DashTable
+# envFactor_list = ['Temperature', 'Precipitation', 'Relative humidity', 'Specific humidity', 'Sky shortwave irradiance',
+#                   'Wind speed 10meters range', 'Wind speed 50meters range'
+#                   ]
+# table_columns = [
+#     {"name": "id", "id": "id", "deletable": False,
+#         "selectable": False, "hideable": False},
+#     {"name": "Location", "id": "location", "deletable": False,
+#         "selectable": False, "hideable": False},
+#     {"name": "Collection date", "id": "collection_date",
+#         "deletable": False, "selectable": False, "hideable": False},
+# ]
 envFactor_list = ['precipitation', 'relative_humidity', 'specific_humidity', 'sky_shortwave_irradiance',
                   'wind_speed_10meters_range', 'wind_speed_50meters_range'
                   ]
