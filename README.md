@@ -8,3 +8,4 @@
 
 
 ## Neo4j
+<img src="./Neo4j/schema_neo.png" alt="isolated" width="700"/>
