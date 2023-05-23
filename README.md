@@ -47,7 +47,7 @@ For more information about aPhyloGeo-pipeline:
 **1. Clone this repo.**
 
     git clone https://github.com/tahiri-lab/iPhyloGeo.js.git
-    cd aPhyloGeo-pipeline
+    cd DashNeo
 
 
 **2. Install dependencies.** <br><br>
@@ -76,8 +76,6 @@ For more information about aPhyloGeo-pipeline:
     
 
 **3. Run workflow**
- 
-    cd DashNeo
    
     python index.py
  
