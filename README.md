@@ -1,4 +1,4 @@
-# iPhyloGeo.js
+## aPhyloGeo-Covid: Reproducible Phylogeographic Analysis Platform of SARS-CoV-2 Variation using Neo4j and Snakemake
 
 
 # 📝 About the project
